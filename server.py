@@ -16,28 +16,55 @@ class React(Protocol):
     else:
       self.handle_BUFF(data)
   def handle_GETNAME(self, name):
+    # Handle duplicate name 
     if self.factory.clients.has_key(name):
-      data_string = pickle.dumps({'message':"Name taken!"})
-      self.transport.write(data_string)
+      d = {
+        'packet_type':'message',
+        'data': {
+          'message_type':'error_newname_taken'
+        }
+      }
+      self.transport.write(pickle.dumps(d))
       return
+    # Handle spaces in name
     if ' ' in name:
-      data_string = pickle.dumps({'message':"Name contains space!"})
-      self.transport.write(data_string)
+      d = {
+        'packet_type':'message',
+        'data': {
+          'message_type':'error_newname_spaces'
+        }
+      }
+      self.transport.write(pickle.dumps(d))
       return
-    data = {'message': 'Welcome, ' + name}
-    if self.factory.count:
-      data['buffer'] = self.factory.buf
-    data_string = pickle.dumps(data)
-    self.transport.write(data_string)
+    # Name is Valid, Add to Document
     self.name = name
     self.factory.clients[name] = self
     self.state = "CHAT"
+    d = {
+      'packet_type':'message',
+      'data': {
+        'message_type':'connect_success',
+        'name':name,
+        'collaborators':self.factory.clients.keys()
+      }
+    }
+    if (self.factory.count>1):
+      d['data']['buffer'] = self.factory.buf 
+    self.transport.write(pickle.dumps(d))
+    # Alert other Collaborators of new user
     for name, protocol in self.factory.clients.iteritems():
       if protocol != self:
-        message = self.name + " has connected!"
-        protocol.transport.write(pickle.dumps({'message': message}))
+        d = {
+          'packet_type':'message',
+          'data': {
+            'message_type':'user_connected',
+            'name':self.name
+          }
+        }
+        protocol.transport.write(pickle.dumps(d))
   def handle_BUFF(self, data_string):
-    data = pickle.loads(data_string)
+    packet = pickle.loads(data_string)
+    data = packet['data']
     print data
     if 'buffer' in data.keys():
       self.factory.buf = data['buffer']
@@ -50,11 +77,18 @@ class React(Protocol):
     self.factory.count -= 1
     if self.factory.count == 0:
       reactor.stop()
-    if self.factory.clients.has_key(self.name):
+    if self.name in self.factory.clients.keys():
       for name, protocol in self.factory.clients.iteritems():
         if protocol != self:
-          message = self.name + " has disconnected!"
-          protocol.transport.write(pickle.dumps({'message': message}))
+#remove your name from list of collaborators
+          d = {
+            'packet_type':'message',
+            'data': {
+              'message_type':'user_disconnected',
+              'name':self.name
+            }
+          }
+          protocol.transport.write(pickle.dumps(d))
       del self.factory.clients[self.name]
 
 class ReactFactory(Factory):

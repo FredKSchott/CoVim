@@ -128,12 +128,16 @@ class VimFactory(ClientFactory):
 
 class CoVimScope:
   def initiate(self, port, name):
-    port = int(port)
-    self.fact = VimFactory(name)
-    reactor.connectTCP('localhost', port, self.fact)
-    reactor_thread = Thread(target=reactor.run, args=(False,))
-    reactor_thread.start()
-#TODO put this all in a vim function
+    self.arg_port = int(port)
+    self.arg_name = name 
+    #Validate
+    ###is there a server on port?
+    
+    #####If not, ask if they'd like to start one
+    ###does name have spaces?
+    ###is name taken?
+    #Setup & Connect
+    #if ' ' in name:
     vim.command(':autocmd!')
     vim.command('autocmd CursorMoved * py CoVim.cursor_update()')
     vim.command('autocmd CursorMovedI * py CoVim.buff_update()')
@@ -141,6 +145,10 @@ class CoVimScope:
     vim.command("1new +setlocal\ stl=%!'CoVim-Collaborators'")
     self.buddylist = vim.current.buffer
     vim.command("wincmd j")
+    self.fact = VimFactory(name)
+    reactor.connectTCP('localhost', port, self.fact)
+    reactor_thread = Thread(target=reactor.run, args=(False,))
+    reactor_thread.start()
   def createServer(self, port, name):
     os.system('./vimserver.py ' + port + ' &')
     self.initiate(port, name)

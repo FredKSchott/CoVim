@@ -30,7 +30,6 @@ import os
 class VimProtocol(Protocol):
   def __init__(self, fact):
     self.fact = fact
-    self.buddylist_matches = []
   def addUsers(self, list):
     for name in list:
       self.fact.colors[name] = ('Cursor' + str(self.fact.color_count), self.fact.id_count)
@@ -48,12 +47,12 @@ class VimProtocol(Protocol):
     current_window_i = vim.eval('winnr()')
     x_a = 1
     vim.command("1wincmd w")
-    for match_id in self.buddylist_matches:
+    for match_id in self.fact.buddylist_matches:
       vim.command('call matchdelete('+str(match_id) + ')')
-      self.buddylist_matches = []
+    self.fact.buddylist_matches = []
     for name in self.fact.colors.keys():
       x_b = x_a + len(name)
-      self.buddylist_matches.append(vim.eval('matchadd(\''+self.fact.colors[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\',10,'+str(self.fact.colors[name][1]+5000)+')'))
+      self.fact.buddylist_matches.append(vim.eval('matchadd(\''+self.fact.colors[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\',10,'+str(self.fact.colors[name][1]+5000)+')'))
       x_a = x_b + 1
     vim.command(str(current_window_i)+"wincmd w")
   def send(self, event):
@@ -68,10 +67,13 @@ class VimProtocol(Protocol):
         vim.current.buffer[:] = data['buffer'].split('\n')
       if packet['packet_type'] == 'message':
         if data['message_type'] == 'error_newname_taken':
+          CoVim.disconnect()
           print 'ERROR: Name already in use. Please try a different name'
         if data['message_type'] == 'error_newname_spaces':
+          CoVim.disconnect()
           print 'ERROR: No spaces alowed. Please try a different name'
         if data['message_type'] == 'connect_success':
+          CoVim.setupWorkspace()
           self.addUsers(data['collaborators'])
           print 'Success! You\'re now connected to the shared document'
         if data['message_type'] == 'user_connected':
@@ -94,13 +96,21 @@ class VimProtocol(Protocol):
 
 class VimFactory(ClientFactory):
   def __init__(self, name):
-    self.me = name
+    self.id_count = 4
+    self.setup(name)
+  def setup(self, me=False):
+    if me:
+      self.me = me
+    self.buddylist_matches = []
     self.colors = {}
     self.color_count = 1
-    self.id_count = 4
   def buildProtocol(self, addr):
     self.p = VimProtocol(self)
     return self.p
+  def startFactory(self):
+    self.isConnected = True
+  def stopFactory(self):
+    self.isConnected = False
   def buff_update(self):
     d = {
       "packet_type":"update",
@@ -125,30 +135,47 @@ class VimFactory(ClientFactory):
     }
     data = pickle.dumps(d)
     self.p.send(data)
+  def clientConnectionLost(self, connector, reason):
+    CoVim.disconnect()
+    print 'Lost connection.'
+  def clientConnectionFailed(self, connector, reason):
+    CoVim.disconnect()
+    print 'Connection failed.' 
 
 class CoVimScope:
+  #def __init__(self):
   def initiate(self, port, name):
-    self.arg_port = int(port)
-    self.arg_name = name 
-    #Validate
-    ###is there a server on port?
-    
-    #####If not, ask if they'd like to start one
-    ###does name have spaces?
-    ###is name taken?
-    #Setup & Connect
-    #if ' ' in name:
+    port = int(port)
+    #Check if connected. If connected, throw error.
+    if hasattr(self, 'fact') and self.fact.isConnected:
+      print 'ERROR: Already connected. Please disconnect first'
+      return
+    if not hasattr(self, 'connection'):
+      self.port = port
+      self.fact = VimFactory(name)
+      self.connection = reactor.connectTCP('localhost', port, self.fact)
+      self.reactor_thread = Thread(target=reactor.run, args=(False,))
+      self.reactor_thread.start()
+    elif hasattr(self, 'port') and port != self.port:
+      print 'ERROR: Different port '+self.port+' already used. To try another port restart Vim'
+      return
+    else:
+      self.fact.setup(name)
+      self.connection.connect()
+      print 'Reconnecting...'
+      return
+    #if first time run, setup
+    #if not connected, reconnect
+    print 'Connecting...'
+  def setupWorkspace(self):
     vim.command(':autocmd!')
     vim.command('autocmd CursorMoved * py CoVim.cursor_update()')
     vim.command('autocmd CursorMovedI * py CoVim.buff_update()')
-    vim.command('autocmd VimLeave * py CoVim.leave()')
+    vim.command('autocmd VimLeave * py CoVim.quit()')
     vim.command("1new +setlocal\ stl=%!'CoVim-Collaborators'")
     self.buddylist = vim.current.buffer
+    self.buddylist_window = vim.current.window
     vim.command("wincmd j")
-    self.fact = VimFactory(name)
-    reactor.connectTCP('localhost', port, self.fact)
-    reactor_thread = Thread(target=reactor.run, args=(False,))
-    reactor_thread.start()
   def createServer(self, port, name):
     os.system('./vimserver.py ' + port + ' &')
     self.initiate(port, name)
@@ -156,14 +183,22 @@ class CoVimScope:
     reactor.callFromThread(self.fact.buff_update)
   def cursor_update(self):
     reactor.callFromThread(self.fact.cursor_update)
-  def leave(self):
+  def disconnect(self):
+    if hasattr(self,'buddylist'):
+      vim.command("1wincmd w")
+      vim.command("q!")
+      del(self.buddylist)
+      del(self.buddylist_window)
+    reactor.callFromThread(self.connection.disconnect)
+    print 'Successfully disconnected from document!'
+  def quit(self):
     reactor.callFromThread(reactor.stop)
-    
-CoVim = CoVimScope()
 
+
+CoVim = CoVimScope()
 EOF
 
 com! -nargs=* CoVimStart py CoVim.createServer(<f-args>)
 com! -nargs=* CoVimConnect py CoVim.initiate(<f-args>)
-com! CoVimDisconnect py CoVim.leave()
+com! CoVimDisconnect py CoVim.disconnect()
 

@@ -77,7 +77,7 @@ class React(Protocol):
     self.factory.count -= 1
     if self.factory.count == 0:
       reactor.stop()
-    if self.name in self.factory.clients.keys():
+    if hasattr(self,'name') and self.name in self.factory.clients.keys():
       for name, protocol in self.factory.clients.iteritems():
         if protocol != self:
 #remove your name from list of collaborators

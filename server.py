@@ -98,10 +98,14 @@ class ReactFactory(Factory):
     self.clients = {}
     self.count = 0
     self.buf = ''
+  def initiate(self, port):
+    self.port = port
+    print 'Now listening on port '+str(port)+'...'
+    reactor.listenTCP(port,self)
+    reactor.run()
   def buildProtocol(self, addr):
     return React(self) 
 
 if __name__ == '__main__':
-  reactor.listenTCP(int(sys.argv[1]), ReactFactory())
-  reactor.run()
-
+  Server = ReactFactory()
+  Server.initiate(int(sys.argv[1]))

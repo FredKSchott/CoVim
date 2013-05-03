@@ -149,8 +149,10 @@ class VimFactory(ClientFactory):
     data = pickle.dumps(d)
     self.p.send(data)
   def clientConnectionLost(self, connector, reason):
-    CoVim.disconnect()
-    print 'Lost connection.'
+    #THIS IS A HACK
+    if hasattr(CoVim, 'buddylist'):
+      CoVim.disconnect()
+      print 'Lost connection.'
   def clientConnectionFailed(self, connector, reason):
     CoVim.disconnect()
     print 'Connection failed.' 
@@ -158,11 +160,16 @@ class VimFactory(ClientFactory):
 class CoVimScope:
   #def __init__(self):
   def initiate(self, port, name):
-    port = int(port)
     #Check if connected. If connected, throw error.
     if hasattr(self, 'fact') and self.fact.isConnected:
       print 'ERROR: Already connected. Please disconnect first'
       return
+    if not port and hasattr(self, 'port') and self.port:
+      port = self.port
+    if not port or not name:
+      print 'Syntax Error: Use form :Covim connect <port> <name>'  
+      return
+    port = int(port)
     if not hasattr(self, 'connection'):
       self.port = port
       self.fact = VimFactory(name)
@@ -189,6 +196,15 @@ class CoVimScope:
     self.buddylist = vim.current.buffer
     self.buddylist_window = vim.current.window
     vim.command("wincmd j")
+  def command(self, arg1=False, arg2=False, arg3=False):
+    if arg1=="connect":
+      self.initiate(arg2, arg3)
+    elif arg1=="disconnect":
+      self.disconnect()
+    elif arg1=="start":
+      self.createServer(arg2, arg3)
+    else:
+      print "Sytax Error: '"+arg1+"' is not a command. Please use 'start', 'connect' or 'disconnect'."
   def createServer(self, port, name):
     os.system('./vimserver.py ' + port + ' &')
     self.initiate(port, name)
@@ -211,7 +227,5 @@ class CoVimScope:
 CoVim = CoVimScope()
 EOF
 
-com! -nargs=* CoVimStart py CoVim.createServer(<f-args>)
-com! -nargs=* CoVimConnect py CoVim.initiate(<f-args>)
-com! CoVimDisconnect py CoVim.disconnect()
+com! -nargs=* CoVim py CoVim.command(<f-args>)
 

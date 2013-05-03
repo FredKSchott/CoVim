@@ -94,19 +94,16 @@ class VimProtocol(Protocol):
                     str(self.fact.colors[data['name']][1])+ ')')
         #Correct Y
         change_y = len(new_buffer)-len(old_buffer)
-        if len(new_buffer) >=  my_y:
-          change_x = len(new_buffer[my_y-1])-len(old_buffer[my_y-1])
-        else:
-          change_x = 0
+        change_x = 0 #len(new_buffer[my_y-1])-len(old_buffer[my_y-1])
 
         if change_y != 0:
           if sender_y <= my_y:
             my_y += change_y
           #if sender_y == my_y:
-        elif change_x != 0:
-          if sender_x <= my_x:
-            my_x += change_x
-          #if sender_y == my_y:
+        #elif change_x != 0:
+        #  if sender_x <= my_x:
+        #    my_x += change_x
+        #  #if sender_y == my_y:
         
       vim.command(':redraw')
       vim.current.window.cursor = (my_y, my_x) 

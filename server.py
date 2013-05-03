@@ -51,6 +51,7 @@ class React(Protocol):
     if (self.factory.count>1):
       d['data']['buffer'] = self.factory.buf 
     self.transport.write(pickle.dumps(d))
+    print 'User "'+self.name+'" Connected'
     # Alert other Collaborators of new user
     for name, protocol in self.factory.clients.iteritems():
       if protocol != self:
@@ -65,7 +66,6 @@ class React(Protocol):
   def handle_BUFF(self, data_string):
     packet = pickle.loads(data_string)
     data = packet['data']
-    print data
     if 'buffer' in data.keys():
       self.factory.buf = data['buffer']
     for name, protocol in self.factory.clients.iteritems():
@@ -76,6 +76,7 @@ class React(Protocol):
   def connectionLost(self, reason):
     self.factory.count -= 1
     if self.factory.count == 0:
+      print 'All users disconnected. Shutting down...'
       reactor.stop()
     if hasattr(self,'name') and self.name in self.factory.clients.keys():
       for name, protocol in self.factory.clients.iteritems():
@@ -89,6 +90,7 @@ class React(Protocol):
             }
           }
           protocol.transport.write(pickle.dumps(d))
+      print 'User "'+self.name+'" Disconnected'
       del self.factory.clients[self.name]
 
 class ReactFactory(Factory):

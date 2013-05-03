@@ -26,7 +26,6 @@ from threading import Thread
 import pickle
 import os
 
-#@NOTE: can't handle special characters, encodes to ascii
 class VimProtocol(Protocol):
   def __init__(self, fact):
     self.fact = fact
@@ -62,9 +61,12 @@ class VimProtocol(Protocol):
   def dataReceived(self, data_string):
     packet = pickle.loads(data_string)	
     if 'packet_type' in packet.keys():
+      (my_y,my_x) = vim.current.window.cursor
       data = packet['data']
       if 'buffer' in data.keys():
-        vim.current.buffer[:] = data['buffer'].split('\n')
+        old_buffer = vim.current.buffer[:]
+        new_buffer = data['buffer'].split('\n')
+        vim.current.buffer[:] = new_buffer
       if packet['packet_type'] == 'message':
         if data['message_type'] == 'error_newname_taken':
           CoVim.disconnect()
@@ -83,16 +85,27 @@ class VimProtocol(Protocol):
           self.remUser(data['name'])
           print data['name']+' disconnected from this document'
       if packet['packet_type'] == 'update':
-        if 'x' in data.keys():
-          cursor_x = max(1,data['x'])
-          cursor_y = data['y'] 
-          print str(cursor_x)+', '+str(cursor_y)
-          vim.command(':call matchdelete('+str(self.fact.colors[data['name']][1]) + ')')
-          vim.command(':call matchadd(\''+self.fact.colors[data['name']][0]+'\', \'\%'+ \
-                      str(cursor_x) + 'v.\%'+str(cursor_y)+'l\', 10, ' + \
-                      str(self.fact.colors[data['name']][1])+ ')')
-    vim.command(':redraw')
-    vim.current.window.cursor = vim.current.window.cursor
+        sender_x = max(1,data['x'])
+        sender_y = data['y'] 
+        print str(sender_x)+', '+str(sender_y)
+        vim.command(':call matchdelete('+str(self.fact.colors[data['name']][1]) + ')')
+        vim.command(':call matchadd(\''+self.fact.colors[data['name']][0]+'\', \'\%'+ \
+                    str(sender_x) + 'v.\%'+str(sender_y)+'l\', 10, ' + \
+                    str(self.fact.colors[data['name']][1])+ ')')
+        #Correct Y
+        change_y = len(new_buffer)-len(old_buffer)
+        change_x = len(new_buffer[my_y-1])-len(old_buffer[my_y-1])
+        if change_y != 0:
+          if sender_y <= my_y:
+            my_y += change_y
+          #if sender_y == my_y:
+        elif change_x != 0:
+          if sender_x <= my_x:
+            my_x += change_x
+          #if sender_y == my_y:
+        
+      vim.command(':redraw')
+      vim.current.window.cursor = (my_y, my_x) 
 
 class VimFactory(ClientFactory):
   def __init__(self, name):

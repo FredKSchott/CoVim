@@ -4,6 +4,6 @@
 ./server <port>
 
 ##To start the Client
-Open Vim
-:CoVim connect <port> <name>
+1. Open Vim 
+2. :CoVim connect <port> <name>
 

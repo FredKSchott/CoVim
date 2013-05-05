@@ -5,5 +5,5 @@
 
 ##To start the Client
 1. Open Vim 
-2. :CoVim connect <port> <name>
+2. :CoVim connect [port] [name]
 

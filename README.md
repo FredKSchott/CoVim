@@ -1,5 +1,4 @@
-#CoVim
-##Collaborative Editting for Vim
+#CoVim - Collaborative Editting for Vim
 
 ##To start the Server
 ./server <port>

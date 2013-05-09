@@ -11,5 +11,5 @@ CoVim adds multi-user, real-time collaboration to your favorite (or least favori
 
 ##Troubleshooting
 __Q: I get an import error every time I start Vim__  
-A: Have you editted your sys.path before? If so, Vim is probably using a different version of python than you normally use, and trying to load libraries for that version.
+A: Vim uses whatever version of Python was most recent when it was installed. Been a while? Update Vim (simply `brew install vim` on Mac).
 

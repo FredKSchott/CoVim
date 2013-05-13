@@ -4,7 +4,10 @@ from twisted.internet.protocol import Factory, Protocol
 #from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
 import pickle
-import sys
+import sys, re
+
+def name_validate(strg, search=re.compile(r'[^0-9a-zA-Z\-\_]').search):
+  return not bool(search(strg))
 
 class React(Protocol):
   def __init__(self, factory):
@@ -27,11 +30,11 @@ class React(Protocol):
       self.transport.write(pickle.dumps(d))
       return
     # Handle spaces in name
-    if ' ' in name:
+    if not name_validate(name):
       d = {
         'packet_type':'message',
         'data': {
-          'message_type':'error_newname_spaces'
+          'message_type':'error_newname_invalid'
         }
       }
       self.transport.write(pickle.dumps(d))
@@ -89,10 +92,11 @@ class React(Protocol):
   #def connectionMade(self):
 
   def connectionLost(self, reason):
-    userManager.rem_user(self.user)
-    if userManager.is_empty():
-      print 'All users disconnected. Shutting down...'
-      reactor.stop()
+    if hasattr(self, 'user'):
+      userManager.rem_user(self.user)
+      if userManager.is_empty():
+        print 'All users disconnected. Shutting down...'
+        reactor.stop()
 
 class ReactFactory(Factory):
   def __init__(self):
@@ -194,26 +198,12 @@ class UserManager:
           user.cursor.y += buffer_data['change_y']
           updated = True
         if user.cursor.y == y_target and user.cursor.x > x_target:
-          user.cursor.x += buffer_data['change_x']
+          user.cursor.x += max(-user.cursor.x+1,buffer_data['change_x'])
           updated = True
+        #TODO: If the line was just split?
         if updated:
           return_arr.append(user.to_json())
     return return_arr
-    #update all users cursors
-      #if cursor is after change 
-        #update it, then add user to cursor array
-
-
-      # Correct Y
-        # change_y = len(new_buffer)-len(old_buffer)
-        # change_x = len(new_buffer[my_y-1])-len(old_buffer[my_y-1])
-
-        # if change_y != 0:
-        #   if sender_y <= my_y:
-        #     my_y += change_y
-        # elif change_x != 0:
-        #   if sender_x <= my_x:
-        #     my_x += change_x
 
 
 

@@ -26,6 +26,7 @@ from twisted.internet import reactor
 from threading import Thread
 import pickle
 import os
+from time import sleep
 
 class VimProtocol(Protocol):
   def __init__(self, fact):
@@ -45,6 +46,8 @@ class VimProtocol(Protocol):
     del(self.fact.colors[name])
     self.refreshBuddyList()
   def refreshBuddyList(self):
+    buddylist_window_width = vim.eval('winwidth(0)')
+    #TODO: Set Width to Autogrow with added/deleted users
     CoVim.buddylist[:] = [' '.join(self.fact.colors.keys())+' ']
     current_window_i = vim.eval('winnr()')
     x_a = 1
@@ -70,9 +73,9 @@ class VimProtocol(Protocol):
         if data['message_type'] == 'error_newname_taken':
           CoVim.disconnect()
           print 'ERROR: Name already in use. Please try a different name'
-        if data['message_type'] == 'error_newname_spaces':
+        if data['message_type'] == 'error_newname_invalid':
           CoVim.disconnect()
-          print 'ERROR: No spaces alowed. Please try a different name'
+          print 'ERROR: Name contains illegal characters. Only numbers, letters, underscores, and dashes allowed. Please try a different name'
         if data['message_type'] == 'connect_success':
           CoVim.setupWorkspace()
           if 'buffer' in data.keys():
@@ -114,13 +117,12 @@ class VimFactory(ClientFactory):
     self.buddylist_matches = []
     self.colors = {}
     self.color_count = 1
-    self.buffer = vim.current.buffer[:]
+    self.buffer = []
   def buildProtocol(self, addr):
     self.p = VimProtocol(self)
     return self.p
   def startFactory(self):
     self.isConnected = True
-    self.buffer = vim.current.buffer[:]
   def stopFactory(self):
     self.isConnected = False
   def buff_update(self):
@@ -223,12 +225,14 @@ class CoVimScope:
     elif arg1=="disconnect":
       self.disconnect()
     elif arg1=="start":
-      self.createServer(arg2, arg3, arg4)
+      self.createServer(arg2, arg3)
     else:
       print "Sytax Error: '"+arg1+"' is not a command. Please use 'start', 'connect' or 'disconnect'."
   def createServer(self, port, name):
-    os.system('./vimserver.py ' + port + ' &')
-    self.initiate(port, name)
+    #os.system('./server.py ' + port + ' &')
+    vim.command(':silent execute "!$HOME\'/.vim/plugin/server.py\' '+port+' &>log.log &"')
+    sleep(0.4)
+    self.initiate('localhost', port, name)
   def buff_update(self):
     reactor.callFromThread(self.fact.buff_update)
   def cursor_update(self):

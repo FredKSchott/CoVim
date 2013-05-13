@@ -4,7 +4,7 @@ CoVim adds multi-user, real-time collaboration to your favorite (or least favori
 ##First, Start Your Server
 1. `./server [port]`
 
-##Then, Start Each Client
+##Then, Start Your Clients
 1. Add client.vim to your plugin folder (~/.vim/plugin/)
 1. Open Vim 
 2. `:CoVim connect [host address] [port] [name]`

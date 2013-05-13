@@ -63,10 +63,6 @@ class VimProtocol(Protocol):
     if 'packet_type' in packet.keys():
       (my_y,my_x) = vim.current.window.cursor
       data = packet['data']
-      if 'buffer' in data.keys():
-        old_buffer = vim.current.buffer[:]
-        new_buffer = data['buffer'].split('\n')
-        vim.current.buffer[:] = new_buffer
       if packet['packet_type'] == 'message':
         if data['message_type'] == 'error_newname_taken':
           CoVim.disconnect()
@@ -76,6 +72,9 @@ class VimProtocol(Protocol):
           print 'ERROR: No spaces alowed. Please try a different name'
         if data['message_type'] == 'connect_success':
           CoVim.setupWorkspace()
+          if 'buffer' in data.keys():
+            self.fact.buffer = data['buffer']
+            vim.current.buffer[:] = self.fact.buffer
           self.addUsers(data['collaborators'])
           print 'Success! You\'re now connected to the shared document'
         if data['message_type'] == 'user_connected':
@@ -85,26 +84,22 @@ class VimProtocol(Protocol):
           self.remUser(data['name'])
           print data['name']+' disconnected from this document'
       if packet['packet_type'] == 'update':
-        sender_x = max(1,data['x'])
-        sender_y = data['y'] 
-        print str(sender_x)+', '+str(sender_y)
-        vim.command(':call matchdelete('+str(self.fact.colors[data['name']][1]) + ')')
-        vim.command(':call matchadd(\''+self.fact.colors[data['name']][0]+'\', \'\%'+ \
-                    str(sender_x) + 'v.\%'+str(sender_y)+'l\', 10, ' + \
-                    str(self.fact.colors[data['name']][1])+ ')')
-        #Correct Y
-        change_y = len(new_buffer)-len(old_buffer)
-        change_x = len(new_buffer[my_y-1])-len(old_buffer[my_y-1])
-
-        if change_y != 0:
-          if sender_y <= my_y:
-            my_y += change_y
-        elif change_x != 0:
-          if sender_x <= my_x:
-            my_x += change_x
-        
+        if 'buffer' in data.keys() and data['name'] != self.fact.me:
+          b_data = data['buffer']
+          self.fact.buffer = vim.current.buffer[:b_data['start']]   \
+                             + b_data['buffer']                     \
+                             + vim.current.buffer[b_data['end']-b_data['change_y']+1:]
+          vim.current.buffer[:] = self.fact.buffer
+        if 'updated_cursors' in data.keys():
+          for updated_user in data['updated_cursors']:
+            if self.fact.me == updated_user['name']:
+              vim.current.window.cursor = (updated_user['cursor']['y'], updated_user['cursor']['x']) 
+            else:
+              vim.command(':call matchdelete('+str(self.fact.colors[updated_user['name']][1]) + ')')
+              vim.command(':call matchadd(\''+self.fact.colors[updated_user['name']][0]+'\', \'\%'+ str(updated_user['cursor']['x']) + 'v.\%'+str(updated_user['cursor']['y'])+'l\', 10, ' + str(self.fact.colors[updated_user['name']][1])+ ')')
+        #data['cursor']['x'] = max(1,data['cursor']['x'])
+        #print str(data['cursor']['x'])+', '+str(data['cursor']['y'])
       vim.command(':redraw')
-      vim.current.window.cursor = (my_y, my_x) 
 
 class VimFactory(ClientFactory):
   def __init__(self, name):
@@ -116,37 +111,54 @@ class VimFactory(ClientFactory):
     self.buddylist_matches = []
     self.colors = {}
     self.color_count = 1
+    self.buffer = vim.current.buffer[:]
   def buildProtocol(self, addr):
     self.p = VimProtocol(self)
     return self.p
   def startFactory(self):
     self.isConnected = True
+    self.buffer = vim.current.buffer[:]
   def stopFactory(self):
     self.isConnected = False
   def buff_update(self):
-    d = {
-      "packet_type":"update",
-      "data": {
-        "x":vim.current.window.cursor[1],
-        "y":vim.current.window.cursor[0],
-        "name":self.me,
-        "buffer": '\n'.join(vim.current.buffer[:])
-        }
-    }
+    d = self.create_update_packet()
     data = pickle.dumps(d)
     self.p.send(data)
   def cursor_update(self):
+    d = self.create_update_packet()
+    d['data']['cursor']['x'] += 1
+    data = pickle.dumps(d)
+    self.p.send(data)
+  def create_update_packet(self):
     d = {
       "packet_type":"update",
       "data": {
-        "x":vim.current.window.cursor[1]+1,
-        "y":vim.current.window.cursor[0],
-        "name":self.me,
-        "buffer": '\n'.join(vim.current.buffer[:])
-        }
+        "cursor": {
+          "x":vim.current.window.cursor[1],
+          "y":vim.current.window.cursor[0]
+        },
+        "name":self.me
+      }
     }
-    data = pickle.dumps(d)
-    self.p.send(data)
+    current_buffer = vim.current.buffer[:]
+    if current_buffer != self.buffer:
+      cursor_y = vim.current.window.cursor[0] - 1
+      change_y = len(current_buffer) - len(self.buffer)
+      change_x = 0#len(current_buffer[cursor_y]) - len(self.buffer[cursor_y-change_y])
+      limits = {
+        'from': max(0,cursor_y-abs(change_y)),
+        'to': min(len(vim.current.buffer)-1, cursor_y+abs(change_y))
+      }
+      d_buffer = {
+        'start' : limits['from'],
+        'end'   : limits['to'],
+        'change_y' : change_y,
+        'change_x' : change_x,
+        'buffer': vim.current.buffer[limits['from']:limits['to']+1]
+      }
+      d['data']['buffer'] = d_buffer
+      self.buffer = current_buffer
+    return d;
   def clientConnectionLost(self, connector, reason):
     #THIS IS A HACK
     if hasattr(CoVim, 'buddylist'):

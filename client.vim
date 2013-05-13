@@ -2,6 +2,7 @@ if !has('python')
   echo "Error: Required vim compiled with +python"
   finish
 endif
+:hi CursorUser gui=bold term=bold cterm=bold 
 :hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold 
 :hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold 
 :hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold 
@@ -30,12 +31,14 @@ class VimProtocol(Protocol):
   def __init__(self, fact):
     self.fact = fact
   def addUsers(self, list):
-    for name in list:
-      self.fact.colors[name] = ('Cursor' + str(self.fact.color_count), self.fact.id_count)
-      self.fact.id_count += 1
-      self.fact.color_count = (self.fact.id_count-3)%11
-      vim.command('call matchadd(\''+self.fact.colors[name][0]+'\', \'\%'+ \
-                  '0v.\%0l\', 10, ' + str(self.fact.colors[name][1])+ ')')
+    for user_obj in list:
+      if user_obj['name'] == self.fact.me:
+        self.fact.colors[user_obj['name']] = ('CursorUser', 4000)
+      else:
+        self.fact.colors[user_obj['name']] = ('Cursor' + str(self.fact.color_count), self.fact.id_count)
+        self.fact.id_count += 1
+        self.fact.color_count = (self.fact.id_count-3)%11
+        vim.command(':call matchadd(\''+self.fact.colors[user_obj['name']][0]+'\', \'\%'+ str(user_obj['cursor']['x']) + 'v.\%'+str(user_obj['cursor']['y'])+'l\', 10, ' + str(self.fact.colors[user_obj['name']][1])+ ')')
       self.refreshBuddyList()
   def remUser(self, name):
     vim.command('call matchdelete('+str(self.fact.colors[name][1]) + ')')
@@ -51,7 +54,7 @@ class VimProtocol(Protocol):
     self.fact.buddylist_matches = []
     for name in self.fact.colors.keys():
       x_b = x_a + len(name)
-      self.fact.buddylist_matches.append(vim.eval('matchadd(\''+self.fact.colors[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\',10,'+str(self.fact.colors[name][1]+5000)+')'))
+      self.fact.buddylist_matches.append(vim.eval('matchadd(\''+self.fact.colors[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\',10,'+str(self.fact.colors[name][1]+2000)+')'))
       x_a = x_b + 1
     vim.command(str(current_window_i)+"wincmd w")
   def send(self, event):
@@ -78,8 +81,8 @@ class VimProtocol(Protocol):
           self.addUsers(data['collaborators'])
           print 'Success! You\'re now connected to the shared document'
         if data['message_type'] == 'user_connected':
-          self.addUsers([ data['name'] ])
-          print data['name']+' connected to this document'
+          self.addUsers([ data['user'] ])
+          print data['user']['name']+' connected to this document'
         if data['message_type'] == 'user_disconnected':
           self.remUser(data['name'])
           print data['name']+' disconnected from this document'
@@ -144,7 +147,10 @@ class VimFactory(ClientFactory):
     if current_buffer != self.buffer:
       cursor_y = vim.current.window.cursor[0] - 1
       change_y = len(current_buffer) - len(self.buffer)
-      change_x = 0#len(current_buffer[cursor_y]) - len(self.buffer[cursor_y-change_y])
+      change_x = 0
+      if len(self.buffer) > cursor_y-change_y and cursor_y-change_y >= 0 \
+        and len(current_buffer) > cursor_y and cursor_y >= 0:
+        change_x = len(current_buffer[cursor_y]) - len(self.buffer[cursor_y-change_y])
       limits = {
         'from': max(0,cursor_y-abs(change_y)),
         'to': min(len(vim.current.buffer)-1, cursor_y+abs(change_y))
@@ -170,25 +176,29 @@ class VimFactory(ClientFactory):
 
 class CoVimScope:
   #def __init__(self):
-  def initiate(self, port, name):
+  def initiate(self, addr, port, name):
     #Check if connected. If connected, throw error.
     if hasattr(self, 'fact') and self.fact.isConnected:
       print 'ERROR: Already connected. Please disconnect first'
       return
     if not port and hasattr(self, 'port') and self.port:
       port = self.port
-    if not port or not name:
-      print 'Syntax Error: Use form :Covim connect <port> <name>'  
+    if not addr and hasattr(self, 'addr') and self.addr:
+      addr = self.addr
+    if not addr or not port or not name:
+      print 'Syntax Error: Use form :Covim connect <server address> <port> <name>'  
       return
     port = int(port)
+    addr = str(addr)
     if not hasattr(self, 'connection'):
+      self.addr = addr
       self.port = port
       self.fact = VimFactory(name)
-      self.connection = reactor.connectTCP('localhost', port, self.fact)
+      self.connection = reactor.connectTCP(addr, port, self.fact)
       self.reactor_thread = Thread(target=reactor.run, args=(False,))
       self.reactor_thread.start()
-    elif hasattr(self, 'port') and port != self.port:
-      print 'ERROR: Different port '+self.port+' already used. To try another port restart Vim'
+    elif (hasattr(self, 'port') and port != self.port) or (hasattr(self, 'addr') and addr != self.addr):
+      print 'ERROR: Different address/port already used. To try another, restart Vim'
       return
     else:
       self.fact.setup(name)
@@ -207,13 +217,13 @@ class CoVimScope:
     self.buddylist = vim.current.buffer
     self.buddylist_window = vim.current.window
     vim.command("wincmd j")
-  def command(self, arg1=False, arg2=False, arg3=False):
+  def command(self, arg1=False, arg2=False, arg3=False, arg4=False):
     if arg1=="connect":
-      self.initiate(arg2, arg3)
+      self.initiate(arg2, arg3, arg4)
     elif arg1=="disconnect":
       self.disconnect()
     elif arg1=="start":
-      self.createServer(arg2, arg3)
+      self.createServer(arg2, arg3, arg4)
     else:
       print "Sytax Error: '"+arg1+"' is not a command. Please use 'start', 'connect' or 'disconnect'."
   def createServer(self, port, name):
@@ -227,6 +237,10 @@ class CoVimScope:
     if hasattr(self,'buddylist'):
       vim.command("1wincmd w")
       vim.command("q!")
+      self.fact.buddylist_matches = []
+      for name in self.fact.colors.keys():
+        if name != self.fact.me:
+          vim.command(':call matchdelete('+str(self.fact.colors[name][1]) + ')')
       del(self.buddylist)
       del(self.buddylist_window)
     reactor.callFromThread(self.connection.disconnect)

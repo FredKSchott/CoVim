@@ -45,7 +45,7 @@ class React(Protocol):
       'data': {
         'message_type':'connect_success',
         'name':name,
-        'collaborators':userManager.users.keys()
+        'collaborators':userManager.all_users_to_json()
       }
     }
     if userManager.is_multi():
@@ -57,7 +57,7 @@ class React(Protocol):
       'packet_type':'message',
       'data': {
         'message_type':'user_connected',
-        'name':self.user.name
+        'user':self.user.to_json()
       }
     }
     self.user.broadcast_packet(d)
@@ -85,21 +85,6 @@ class React(Protocol):
       return
     print d
     self.user.broadcast_packet(d, False)
-
-
-
-
-      # Correct Y
-        # change_y = len(new_buffer)-len(old_buffer)
-        # change_x = len(new_buffer[my_y-1])-len(old_buffer[my_y-1])
-
-        # if change_y != 0:
-        #   if sender_y <= my_y:
-        #     my_y += change_y
-        # elif change_x != 0:
-        #   if sender_x <= my_x:
-        #     my_x += change_x
-    
 
   #def connectionMade(self):
 
@@ -190,21 +175,45 @@ class UserManager:
       user.broadcast_packet(d)
       print 'User "'+user.name+'" Disconnected'
       del self.users[user.name]
-  
+
+  def all_users_to_json(self):
+    return_arr = []
+    for name, user in userManager.users.iteritems():
+      return_arr.append(user.to_json())
+    return return_arr
+
   def update_cursors(self, buffer_data, u):
     return_arr = []
     y_target = u.cursor.y
+    x_target = u.cursor.x
     for name, user in userManager.users.iteritems():
+      updated = False
       if user != u:
         print str(user.cursor.y) +','+ str(y_target)
         if user.cursor.y > y_target:
           user.cursor.y += buffer_data['change_y']
+          updated = True
+        if user.cursor.y == y_target and user.cursor.x > x_target:
+          user.cursor.x += buffer_data['change_x']
+          updated = True
+        if updated:
           return_arr.append(user.to_json())
     return return_arr
     #update all users cursors
       #if cursor is after change 
         #update it, then add user to cursor array
 
+
+      # Correct Y
+        # change_y = len(new_buffer)-len(old_buffer)
+        # change_x = len(new_buffer[my_y-1])-len(old_buffer[my_y-1])
+
+        # if change_y != 0:
+        #   if sender_y <= my_y:
+        #     my_y += change_y
+        # elif change_x != 0:
+        #   if sender_x <= my_x:
+        #     my_x += change_x
 
 
 

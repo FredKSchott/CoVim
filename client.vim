@@ -46,18 +46,26 @@ class VimProtocol(Protocol):
     del(self.fact.colors[name])
     self.refreshBuddyList()
   def refreshBuddyList(self):
-    buddylist_window_width = vim.eval('winwidth(0)')
+    buddylist_window_width = int(vim.eval('winwidth(0)'))
     #TODO: Set Width to Autogrow with added/deleted users
-    CoVim.buddylist[:] = [' '.join(self.fact.colors.keys())+' ']
+    CoVim.buddylist[:] = ['']
     current_window_i = vim.eval('winnr()')
     x_a = 1
+    line_i = 0
     vim.command("1wincmd w")
     for match_id in self.fact.buddylist_matches:
       vim.command('call matchdelete('+str(match_id) + ')')
     self.fact.buddylist_matches = []
     for name in self.fact.colors.keys():
       x_b = x_a + len(name)
-      self.fact.buddylist_matches.append(vim.eval('matchadd(\''+self.fact.colors[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\',10,'+str(self.fact.colors[name][1]+2000)+')'))
+      if x_b > buddylist_window_width:
+        line_i += 1
+        x_a = 1
+        x_b = x_a + len(name)
+        CoVim.buddylist.append('')
+        vim.command('resize '+str(line_i+1))
+      CoVim.buddylist[line_i] += name+' '
+      self.fact.buddylist_matches.append(vim.eval('matchadd(\''+self.fact.colors[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\%'+str(line_i+1)+'l\',10,'+str(self.fact.colors[name][1]+2000)+')'))
       x_a = x_b + 1
     vim.command(str(current_window_i)+"wincmd w")
   def send(self, event):
@@ -221,13 +229,19 @@ class CoVimScope:
     vim.command("wincmd j")
   def command(self, arg1=False, arg2=False, arg3=False, arg4=False):
     if arg1=="connect":
-      self.initiate(arg2, arg3, arg4)
+      if arg2 and arg3 and arg4:
+        self.initiate(arg2, arg3, arg4)
+      else:
+        print "usage: git connect [host address] [port] [your name]"
     elif arg1=="disconnect":
       self.disconnect()
     elif arg1=="start":
-      self.createServer(arg2, arg3)
+      if arg2 and arg3:
+        self.createServer(arg2, arg3)
+      else:
+        print "usage: git start [port] [your name]"
     else:
-      print "Sytax Error: '"+arg1+"' is not a command. Please use 'start', 'connect' or 'disconnect'."
+      print "usage: git [start] [connect] [disconnect]"
   def createServer(self, port, name):
     #os.system('./server.py ' + port + ' &')
     vim.command(':silent execute "!$HOME\'/.vim/plugin/server.py\' '+port+' &>log.log &"')

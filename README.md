@@ -1,12 +1,14 @@
 #CoVim - Collaborative Editting for Vim
-CoVim adds real-time collaboration to your favorite (or least favorite) text editor. Think Google Docs for Vim.
+One of Vim's [most requested features](http://www.vim.org/sponsor/vote_results.php) is here!  
+__CoVim__ is a Vim Plugin that adds real-time collaboration to your favorite text editor (think Google Docs for Vim).
 
-##Features
+###Features
 - Multiple users can edit the same document
+- Displays collaborators working on current document, with their cursor colors 
 - Simple setup & use
 - Works with your existing configuration
 
-##Hello, World(s)!
+###Hello, World(s)!
 1. Add client.vim & server.py to your plugin folder (~/.vim/plugin/)
 2. Open Vim
 3. To start a new CoVim server: `:CoVim start [port] [name]`
@@ -20,4 +22,4 @@ __Q: Why do I get an import error every time I start Vim?__
 A: Make sure Vim is using a version of Python that includes Twisted (2.5+), and that it's linking to the right libraries. See [this post](https://github.com/Valloric/YouCompleteMe/issues/241) for more info on debugging & fixing.
 
 __Q: Why doesn't CoVim support X?__  
-A: New features are being added all the time. Check back in a bit or (even better) contribute!
+A: New features are being added all the time. Check back in a bit. Or even better, contribute!

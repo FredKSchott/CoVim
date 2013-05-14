@@ -16,8 +16,8 @@ CoVim adds real-time collaboration to your favorite (or least favorite) text edi
 __Q: How do files work with CoVim? Are we all editing one file? Our own copies?__  
 A: CoVim never saves a file. It simply modifies your buffer (whatever's being displayed in the window) allowing you to save a copy of the working collaboration to file anytime. 
 
-__Q: I get an import error every time I start Vim__  
-A: Make sure Vim is using a version of Python that includes Twisted (2.5+), and that it's linking to the right libraries. See [this post](https://github.com/Valloric/YouCompleteMe/issues/241) for info on debugging & fixing.
+__Q: Why do I get an import error every time I start Vim?__  
+A: Make sure Vim is using a version of Python that includes Twisted (2.5+), and that it's linking to the right libraries. See [this post](https://github.com/Valloric/YouCompleteMe/issues/241) for more info on debugging & fixing.
 
 __Q: Why doesn't CoVim support X?__  
 A: New features are being added all the time. Check back in a bit or (even better) contribute!

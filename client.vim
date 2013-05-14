@@ -260,6 +260,7 @@ class CoVimScope:
         if name != self.fact.me:
           vim.command(':call matchdelete('+str(self.fact.colors[name][1]) + ')')
       del(self.buddylist)
+    if hasattr(self,'buddylist_window'):
       del(self.buddylist_window)
     reactor.callFromThread(self.connection.disconnect)
     print 'Successfully disconnected from document!'
@@ -271,4 +272,3 @@ CoVim = CoVimScope()
 EOF
 
 com! -nargs=* CoVim py CoVim.command(<f-args>)
-

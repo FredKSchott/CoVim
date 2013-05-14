@@ -3,10 +3,10 @@ One of Vim's [most requested features](http://www.vim.org/sponsor/vote_results.p
 __CoVim__ is a Vim Plugin that adds real-time collaboration to your favorite text editor (think Google Docs for Vim).
 
 ###Features
-- Multiple users can edit the same document
+- Allows multiple users to edit the same document
 - Displays collaborators working on current document, with their cursor colors 
-- Simple setup & use
 - Works with your existing configuration
+- Easy to setup and use
 
 ###Hello, World(s)!
 1. Add client.vim & server.py to your plugin folder (~/.vim/plugin/)

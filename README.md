@@ -8,7 +8,7 @@ __More info can be found on the [announcement post!](http://www.fredkschott.com/
 ![Demo Gif](http://i.imgur.com/6iSettg.gif "Demo Gif")
 
 ##Features
-- Allows multiple users to edit the same document
+- Allows multiple users to connect to the same document online
 - Displays collaborators with individual cursors 
 - Works with your existing configuration
 - Easy to set up & use

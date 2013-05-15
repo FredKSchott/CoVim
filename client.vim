@@ -2,19 +2,22 @@ if !has('python')
   echo "Error: Required vim compiled with +python"
   finish
 endif
-:hi CursorUser gui=bold term=bold cterm=bold 
-:hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold 
-:hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold 
-:hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold 
-:hi Cursor4 ctermbg=DarkCyan ctermfg=White guibg=DarkCyan guifg=White gui=bold term=bold cterm=bold 
-:hi Cursor5 ctermbg=DarkMagenta ctermfg=White guibg=DarkMagenta guifg=White gui=bold term=bold cterm=bold 
-:hi Cursor6 ctermbg=Brown ctermfg=White guibg=Brown guifg=White gui=bold term=bold cterm=bold 
-:hi Cursor7 ctermbg=LightRed ctermfg=Black guibg=LightRed guifg=Black gui=bold term=bold cterm=bold 
-:hi Cursor8 ctermbg=LightBlue ctermfg=Black guibg=LightBlue guifg=Black gui=bold term=bold cterm=bold 
-:hi Cursor9 ctermbg=LightGreen ctermfg=Black guibg=LightGreen guifg=Black gui=bold term=bold cterm=bold 
-:hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold 
-:hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold 
 
+"Needs to be set on connect, MacVim overrides otherwise"
+function SetCoVimColors ()
+  :hi CursorUser gui=bold term=bold cterm=bold 
+  :hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold 
+  :hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold 
+  :hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold 
+  :hi Cursor4 ctermbg=DarkCyan ctermfg=White guibg=DarkCyan guifg=White gui=bold term=bold cterm=bold 
+  :hi Cursor5 ctermbg=DarkMagenta ctermfg=White guibg=DarkMagenta guifg=White gui=bold term=bold cterm=bold 
+  :hi Cursor6 ctermbg=Brown ctermfg=White guibg=Brown guifg=White gui=bold term=bold cterm=bold 
+  :hi Cursor7 ctermbg=LightRed ctermfg=Black guibg=LightRed guifg=Black gui=bold term=bold cterm=bold 
+  :hi Cursor8 ctermbg=LightBlue ctermfg=Black guibg=LightBlue guifg=Black gui=bold term=bold cterm=bold 
+  :hi Cursor9 ctermbg=LightGreen ctermfg=Black guibg=LightGreen guifg=Black gui=bold term=bold cterm=bold 
+  :hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold 
+  :hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold 
+endfunction
 
 :python import vim
 python << EOF
@@ -27,6 +30,10 @@ from threading import Thread
 import pickle
 import os
 from time import sleep
+
+
+CoVimServerPath = '~/.vim/plugin/server.py'
+
 
 class VimProtocol(Protocol):
   def __init__(self, fact):
@@ -75,7 +82,6 @@ class VimProtocol(Protocol):
   def dataReceived(self, data_string):
     packet = pickle.loads(data_string)	
     if 'packet_type' in packet.keys():
-      (my_y,my_x) = vim.current.window.cursor
       data = packet['data']
       if packet['packet_type'] == 'message':
         if data['message_type'] == 'error_newname_taken':
@@ -90,7 +96,7 @@ class VimProtocol(Protocol):
             self.fact.buffer = data['buffer']
             vim.current.buffer[:] = self.fact.buffer
           self.addUsers(data['collaborators'])
-          print 'Success! You\'re now connected to the shared document'
+          print 'Success! You\'re now connected [Port '+str(CoVim.port)+']'
         if data['message_type'] == 'user_connected':
           self.addUsers([ data['user'] ])
           print data['user']['name']+' connected to this document'
@@ -105,10 +111,12 @@ class VimProtocol(Protocol):
                              + vim.current.buffer[b_data['end']-b_data['change_y']+1:]
           vim.current.buffer[:] = self.fact.buffer
         if 'updated_cursors' in data.keys():
+          # We need to update your own cursor as soon as possible, then update other cursors after
           for updated_user in data['updated_cursors']:
-            if self.fact.me == updated_user['name']:
+            if self.fact.me == updated_user['name'] and data['name'] != self.fact.me:
               vim.current.window.cursor = (updated_user['cursor']['y'], updated_user['cursor']['x']) 
-            else:
+          for updated_user in data['updated_cursors']:
+            if self.fact.me != updated_user['name']:
               vim.command(':call matchdelete('+str(self.fact.colors[updated_user['name']][1]) + ')')
               vim.command(':call matchadd(\''+self.fact.colors[updated_user['name']][0]+'\', \'\%'+ str(updated_user['cursor']['x']) + 'v.\%'+str(updated_user['cursor']['y'])+'l\', 10, ' + str(self.fact.colors[updated_user['name']][1])+ ')')
         #data['cursor']['x'] = max(1,data['cursor']['x'])
@@ -134,25 +142,34 @@ class VimFactory(ClientFactory):
   def stopFactory(self):
     self.isConnected = False
   def buff_update(self):
-    d = self.create_update_packet()
-    data = pickle.dumps(d)
-    self.p.send(data)
-  def cursor_update(self):
-    d = self.create_update_packet()
-    d['data']['cursor']['x'] += 1
-    data = pickle.dumps(d)
-    self.p.send(data)
-  def create_update_packet(self):
     d = {
       "packet_type":"update",
       "data": {
         "cursor": {
-          "x":vim.current.window.cursor[1],
+          "x":max(1, vim.current.window.cursor[1]),
           "y":vim.current.window.cursor[0]
         },
         "name":self.me
       }
     }
+    d = self.create_update_packet(d)
+    data = pickle.dumps(d)
+    self.p.send(data)
+  def cursor_update(self):
+    d = {
+      "packet_type":"update",
+      "data": {
+        "cursor": {
+          "x":max(1, vim.current.window.cursor[1]+1),
+          "y":vim.current.window.cursor[0]
+        },
+        "name":self.me
+      }
+    }
+    d = self.create_update_packet(d)
+    data = pickle.dumps(d)
+    self.p.send(data)
+  def create_update_packet(self, d):
     current_buffer = vim.current.buffer[:]
     if current_buffer != self.buffer:
       cursor_y = vim.current.window.cursor[0] - 1
@@ -219,6 +236,7 @@ class CoVimScope:
     #if not connected, reconnect
     print 'Connecting...'
   def setupWorkspace(self):
+    vim.command('call SetCoVimColors()')
     vim.command(':autocmd!')
     vim.command('autocmd CursorMoved * py CoVim.cursor_update()')
     vim.command('autocmd CursorMovedI * py CoVim.buff_update()')
@@ -243,8 +261,7 @@ class CoVimScope:
     else:
       print "usage: git [start] [connect] [disconnect]"
   def createServer(self, port, name):
-    #os.system('./server.py ' + port + ' &')
-    vim.command(':silent execute "!$HOME\'/.vim/plugin/server.py\' '+port+' &>log.log &"')
+    vim.command(':silent execute "!'+CoVimServerPath+' '+port+' &>/dev/null &"')
     sleep(0.4)
     self.initiate('localhost', port, name)
   def buff_update(self):
@@ -271,4 +288,4 @@ class CoVimScope:
 CoVim = CoVimScope()
 EOF
 
-com! -nargs=* CoVim py CoVim.command(<f-args>)
+com! -nargs=+ CoVim py CoVim.command(<f-args>)

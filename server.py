@@ -198,7 +198,11 @@ class UserManager:
           user.cursor.y += buffer_data['change_y']
           updated = True
         if user.cursor.y == y_target and user.cursor.x > x_target:
-          user.cursor.x += max(-user.cursor.x+1,buffer_data['change_x'])
+          user.cursor.x = max(1, user.cursor.x+buffer_data['change_x'])
+          updated = True
+        if user.cursor.y == y_target-1 and user.cursor.x > x_target and buffer_data['change_y']==1:
+          user.cursor.y += 1
+          user.cursor.x = max(1, user.cursor.x+buffer_data['change_x'])
           updated = True
         #TODO: If the line was just split?
         if updated:

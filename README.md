@@ -11,9 +11,10 @@ __CoVim__ is a Vim Plugin that adds real-time collaboration to your favorite tex
 - Easy to setup and use
 
 ###Hello, World(s)!
-1. Add client.vim & server.py to your plugin folder (~/.vim/plugin/)
-2. Open Vim
-3. To start a new CoVim server: `:CoVim start [port] [name]`
-4. To connect to a running server: `:CoVim connect [host address / 'localhost'] [port] [name]`
+1. Double-check you have twisted library installed: `pip install twisted`
+2. Add client.vim & server.py to your plugin folder: `~/.vim/plugin/`
+3. Open Vim
+4. To start a new CoVim server: `:CoVim start [port] [name]`
+5. To connect to a running server: `:CoVim connect [host address / 'localhost'] [port] [name]`
 
 ####[FAQ / Troubleshooting](https://github.com/FredKSchott/CoVim/wiki/FAQ---Troubleshooting)

@@ -22,5 +22,5 @@ __More info can be found on the [announcement post!](http://www.fredkschott.com/
 6. To disconnect: `Quit Vim` or `:CoVim disconnect`
 
 ##Links
-__[Announcement Post](https://github.com/FredKSchott/CoVim/wiki/FAQ-&-Troubleshooting)__
+__[Announcement Post](https://github.com/FredKSchott/CoVim/wiki/FAQ-&-Troubleshooting)__  
 __[FAQ / Troubleshooting](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__

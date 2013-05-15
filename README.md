@@ -2,8 +2,7 @@
 One of Vim's [most requested features](http://www.vim.org/sponsor/vote_results.php) is here!  
 __CoVim__ is a Vim Plugin that adds real-time collaboration to your favorite text editor (think Google Docs for Vim).
 
-![Demo Gif](http://i.imgur.com/UPlmZ7c.gif "Demo Gif")
-
+![Demo Gif](http://i.imgur.com/6iSettg.gif "Demo Gif")
 
 ###Features
 - Allows multiple users to edit the same document

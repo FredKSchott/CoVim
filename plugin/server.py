@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 from twisted.internet.protocol import Factory, Protocol
 #from twisted.protocols.basic import LineReceiver

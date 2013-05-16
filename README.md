@@ -1,4 +1,4 @@
-#CoVim - Collaborative Editting for Vim
+#CoVim - Collaborative Editing for Vim
 One of Vim's [most requested features](http://www.vim.org/sponsor/vote_results.php) is here!  
 
 ##What this is
@@ -22,5 +22,5 @@ __More info can be found on the [announcement post!](http://www.fredkschott.com/
 6. To disconnect: `Quit Vim` or `:CoVim disconnect`
 
 ##Links
-__[Announcement Post](https://github.com/FredKSchott/CoVim/wiki/FAQ-&-Troubleshooting)__  
-__[FAQ / Troubleshooting](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__
+__[Announcement Post](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__  
+__[FAQ / Troubleshooting](https://github.com/FredKSchott/CoVim/wiki/FAQ-&-Troubleshooting)__

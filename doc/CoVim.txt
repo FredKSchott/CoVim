@@ -1,0 +1,45 @@
+*CoVim.txt*  A plugin that brings collaborative editing inside vim.
+                Author: FredKSchott
+
+CoVim provides an easy way to define a vim instance as a server where your
+collaborators can join you and edit the file at the same time.
+
+Each collaborator gets a cursor of a different color and can be at different
+places in the file being edited.
+Every collaborator sees the change of the other in real time.
+
+Demo:
+https://github.com/FredKSchott/CoVim
+
+
+                                                         *:CoVim*
+Declaring a vim instance as a CoVim server~
+
+Nothing simpler, just execute the following command: >
+:CoVim start [port] [name]
+
+Connecting to a server instance of CoVim~
+
+:CoVim connect [{host_address}|'localhost'] [port] [name]
+
+Disconnect from a shared CoVim session~
+
+:CoVim disconnect
+
+=============================================================================
+Installation~
+
+Dependency~
+
+Make sure you have installed twisted (distributed by python pip)
+pip install twisted
+
+With Vundle or Pathogen~
+
+Well I'm sure you know how it works by now!
+
+Manually~
+
+Add client.vim & server.py to your plugin folder: ~/.vim/plugin/
+
+vim:tw=78:fo=tcq2:isk=!-~,^*,^|,^":ts=8:ft=help:norl:

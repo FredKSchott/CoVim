@@ -15,7 +15,7 @@ __More info can be found on the [announcement post!](http://www.fredkschott.com/
 
 ##Hello, World(s)!
 1. Double-check you have twisted library installed: `pip install twisted`
-2. Add client.vim & server.py to your plugin folder: `~/.vim/plugin/`
+2. Add client.vim & server.py to your plugin folder: `~/.vim/plugin/` or install through Vundle/Pathogen
 3. Open Vim
 4. To start a new CoVim server: `:CoVim start [port] [name]`
 5. To connect to a running server: `:CoVim connect [host address / 'localhost'] [port] [name]`

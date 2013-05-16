@@ -32,8 +32,11 @@ import os
 from time import sleep
 
 
-CoVimServerPath = '~/.vim/plugin/server.py'
-
+# Check for Vundle/Pathogen
+if os.path.exists(os.path.expanduser('~') + '/.vim/bundle/CoVim/plugin'):
+  CoVimServerPath = '~/.vim/bundle/CoVim/plugin/server.py'
+else:
+  CoVimServerPath = '~/.vim/plugin/server.py'
 
 class VimProtocol(Protocol):
   def __init__(self, fact):

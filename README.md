@@ -3,6 +3,7 @@ One of Vim's [most requested features](http://www.vim.org/sponsor/vote_results.p
 CoVim is a Vim Plugin that adds  real-time collaboration to your favorite text editor. Think Google Docs for Vim.  
 __More info can be found on the [announcement post!](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__
 
+
 ![Demo Gif](http://i.imgur.com/bjk4Ze5.gif "Demo Gif")
 
 ##Features

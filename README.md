@@ -4,7 +4,7 @@ CoVim is a Vim Plugin that adds  real-time collaboration to your favorite text e
 __More info can be found on the [announcement post!](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__
 
 
-![Demo Gif](http://i.imgur.com/bjk4Ze5.gif "Demo Gif")
+![Demo Gif](http://i.imgur.com/Vny0TuQ.gif "Demo Gif")
 
 ##Features
 - Allows multiple users to connect to the same document online

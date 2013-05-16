@@ -4,7 +4,7 @@ if !has('python')
 endif
 
 "Needs to be set on connect, MacVim overrides otherwise"
-function SetCoVimColors ()
+function! SetCoVimColors ()
   :hi CursorUser gui=bold term=bold cterm=bold 
   :hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold 
   :hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold 

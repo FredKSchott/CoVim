@@ -35,9 +35,9 @@ __Install Manually:__
 
 
 ##Usage
-1. To start a new CoVim server: `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)
-2. To connect to a running server: `:CoVim connect [host address / 'localhost'] [port] [name]`
-3. To disconnect: `Quit Vim` or `:CoVim disconnect`
+__To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)  
+__To connect to a running server:__ `:CoVim connect [host address / 'localhost'] [port] [name]`  
+__To disconnect:__ `Quit Vim` or `:CoVim disconnect`  
 
 ##Links
 __[Announcement Post](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__  

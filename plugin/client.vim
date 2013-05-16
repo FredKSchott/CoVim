@@ -253,16 +253,16 @@ class CoVimScope:
       if arg2 and arg3 and arg4:
         self.initiate(arg2, arg3, arg4)
       else:
-        print "usage: git connect [host address] [port] [your name]"
+        print "usage :CoVim connect [host address] [port] [your name]"
     elif arg1=="disconnect":
       self.disconnect()
     elif arg1=="start":
       if arg2 and arg3:
         self.createServer(arg2, arg3)
       else:
-        print "usage: git start [port] [your name]"
+        print "usage: CoVim start [port] [your name]"
     else:
-      print "usage: git [start] [connect] [disconnect]"
+      print "usage: CoVim [start] [connect] [disconnect]"
   def createServer(self, port, name):
     vim.command(':silent execute "!'+CoVimServerPath+' '+port+' &>/dev/null &"')
     sleep(0.4)

@@ -3,7 +3,8 @@ One of Vim's [most requested features](http://www.vim.org/sponsor/vote_results.p
 CoVim is a Vim Plugin that adds  real-time collaboration to your favorite text editor. Think Google Docs for Vim.  
 __More info can be found on the [announcement post!](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__
 
-![Demo Gif](http://i.imgur.com/6iSettg.gif "Demo Gif")
+
+![Demo Gif](http://i.imgur.com/Vny0TuQ.gif "Demo Gif")
 
 ##Features
 - Allows multiple users to connect to the same document online
@@ -35,9 +36,9 @@ __Install Manually:__
 
 
 ##Usage
-1. To start a new CoVim server: `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)
-2. To connect to a running server: `:CoVim connect [host address / 'localhost'] [port] [name]`
-3. To disconnect: `Quit Vim` or `:CoVim disconnect`
+__To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)  
+__To connect to a running server:__ `:CoVim connect [host address / 'localhost'] [port] [name]`  
+__To disconnect:__ `Quit Vim` or `:CoVim disconnect`  
 
 ##Links
 __[Announcement Post](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__  

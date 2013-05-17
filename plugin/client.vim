@@ -18,7 +18,7 @@ function! SetCoVimColors ()
   :hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold 
   :hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold 
 endfunction
-
+ 
 :python import vim
 python << EOF
 
@@ -111,7 +111,7 @@ class VimProtocol(Protocol):
           b_data = data['buffer']
           self.fact.buffer = vim.current.buffer[:b_data['start']]   \
                              + b_data['buffer']                     \
-                             + vim.current.buffer[b_data['end']-b_data['change_y']+1:]
+                             + vim.current.buffer[b_data['end']-b_data['change_y']+1:b_data['buffer_size']]
           vim.current.buffer[:] = self.fact.buffer
         if 'updated_cursors' in data.keys():
           # We need to update your own cursor as soon as possible, then update other cursors after
@@ -190,7 +190,8 @@ class VimFactory(ClientFactory):
         'end'   : limits['to'],
         'change_y' : change_y,
         'change_x' : change_x,
-        'buffer': vim.current.buffer[limits['from']:limits['to']+1]
+        'buffer': vim.current.buffer[limits['from']:limits['to']+1],
+        'buffer_size': len(current_buffer)
       }
       d['data']['buffer'] = d_buffer
       self.buffer = current_buffer

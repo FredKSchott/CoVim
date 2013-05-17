@@ -94,7 +94,7 @@ class React(Protocol):
       #print ' \\n '.join(self.factory.buff[b_data['end']-b_data['change_y']+1:])
       self.factory.buff = self.factory.buff[:b_data['start']]   \
                           + b_data['buffer']                    \
-                          + self.factory.buff[b_data['end']-b_data['change_y']+1:b_data['buffer_size']]
+                          + self.factory.buff[b_data['end']-b_data['change_y']+1:]
       d['data']['updated_cursors'] += userManager.update_cursors(b_data, user)
       print d
       self.user.broadcast_packet(d, True)

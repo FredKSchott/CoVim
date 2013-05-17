@@ -27,7 +27,7 @@ from twisted.internet.protocol import ClientFactory, Protocol
 from twisted.internet import reactor
 #from twisted.internet.interfaces import IReactorThreads
 from threading import Thread
-import pickle
+import json
 import os
 from time import sleep
 
@@ -83,7 +83,20 @@ class VimProtocol(Protocol):
   def connectionMade(self):
     self.send(self.fact.me)
   def dataReceived(self, data_string):
-    packet = pickle.loads(data_string)	
+    def to_utf8(d):
+      if isinstance(d, dict):
+        # no dict comprehension in python2.5/2.6
+        d2 = {}
+        for key, value in d.iteritems():
+          d2[to_utf8(key)] = to_utf8(value)
+        return d2
+      elif isinstance(d, list):
+        return map(to_utf8, d)
+      elif isinstance(d, unicode):
+        return d.encode('utf-8')
+      else:
+        return d
+    packet = to_utf8(json.loads(data_string))
     if 'packet_type' in packet.keys():
       data = packet['data']
       if packet['packet_type'] == 'message':
@@ -156,7 +169,7 @@ class VimFactory(ClientFactory):
       }
     }
     d = self.create_update_packet(d)
-    data = pickle.dumps(d)
+    data = json.dumps(d)
     self.p.send(data)
   def cursor_update(self):
     d = {
@@ -170,7 +183,7 @@ class VimFactory(ClientFactory):
       }
     }
     d = self.create_update_packet(d)
-    data = pickle.dumps(d)
+    data = json.dumps(d)
     self.p.send(data)
   def create_update_packet(self, d):
     current_buffer = vim.current.buffer[:]

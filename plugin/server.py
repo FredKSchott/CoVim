@@ -3,7 +3,7 @@
 from twisted.internet.protocol import Factory, Protocol
 #from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
-import pickle
+import json
 import sys, re
 
 def name_validate(strg, search=re.compile(r'[^0-9a-zA-Z\-\_]').search):
@@ -27,7 +27,7 @@ class React(Protocol):
           'message_type':'error_newname_taken'
         }
       }
-      self.transport.write(pickle.dumps(d))
+      self.transport.write(json.dumps(d))
       return
     # Handle spaces in name
     if not name_validate(name):
@@ -37,7 +37,7 @@ class React(Protocol):
           'message_type':'error_newname_invalid'
         }
       }
-      self.transport.write(pickle.dumps(d))
+      self.transport.write(json.dumps(d))
       return
     # Name is Valid, Add to Document
     self.user = User(name, self)
@@ -53,7 +53,7 @@ class React(Protocol):
     }
     if userManager.is_multi():
       d['data']['buffer'] = self.factory.buff 
-    self.transport.write(pickle.dumps(d))
+    self.transport.write(json.dumps(d))
     print 'User "'+self.user.name+'" Connected'
     # Alert other Collaborators of new user
     d = {
@@ -66,7 +66,20 @@ class React(Protocol):
     self.user.broadcast_packet(d)
 
   def handle_BUFF(self, data_string):
-    d = pickle.loads(data_string)
+    def to_utf8(d):
+      if isinstance(d, dict):
+        # no dict comprehension in python2.5/2.6
+        d2 = {}
+        for key, value in d.iteritems():
+          d2[to_utf8(key)] = to_utf8(value)
+        return d2
+      elif isinstance(d, list):
+        return map(to_utf8, d)
+      elif isinstance(d, unicode):
+        return d.encode('utf-8')
+      else:
+        return d
+    d = to_utf8(json.loads(data_string))
     data = d['data']
     if 'cursor' in data.keys():
       user = userManager.get_user(data['name'])
@@ -137,7 +150,7 @@ class User:
   def broadcast_packet(self, obj, send_to_self = False):
     for name, user in userManager.users.iteritems():
       if user.name != self.name or send_to_self:
-        user.protocol.transport.write(pickle.dumps(obj))
+        user.protocol.transport.write(json.dumps(obj))
         #TODO: don't send yourself your own buffer, but del on a copy doesn't work
 
   def update_cursor(self, x, y):

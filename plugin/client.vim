@@ -124,7 +124,7 @@ class VimProtocol(Protocol):
           b_data = data['buffer']
           self.fact.buffer = vim.current.buffer[:b_data['start']]   \
                              + b_data['buffer']                     \
-                             + vim.current.buffer[b_data['end']-b_data['change_y']+1:]
+                             + vim.current.buffer[b_data['end']-b_data['change_y']+1:b_data['buffer_size']]
           vim.current.buffer[:] = self.fact.buffer
         if 'updated_cursors' in data.keys():
           # We need to update your own cursor as soon as possible, then update other cursors after

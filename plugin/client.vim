@@ -96,6 +96,14 @@ class VimProtocol(Protocol):
         return d.encode('utf-8')
       else:
         return d
+
+    def clean_data_string(d_s):
+      bad_data = d_s.find("}{")
+      if bad_data > -1:
+        d_s = d_s[:bad_data+1]
+      return d_s
+      
+    data_string = clean_data_string(data_string)
     packet = to_utf8(json.loads(data_string))
     if 'packet_type' in packet.keys():
       data = packet['data']
@@ -124,7 +132,7 @@ class VimProtocol(Protocol):
           b_data = data['buffer']
           self.fact.buffer = vim.current.buffer[:b_data['start']]   \
                              + b_data['buffer']                     \
-                             + vim.current.buffer[b_data['end']-b_data['change_y']+1:b_data['buffer_size']]
+                             + vim.current.buffer[b_data['end']-b_data['change_y']+1:]
           vim.current.buffer[:] = self.fact.buffer
         if 'updated_cursors' in data.keys():
           # We need to update your own cursor as soon as possible, then update other cursors after

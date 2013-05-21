@@ -79,8 +79,17 @@ class React(Protocol):
         return d.encode('utf-8')
       else:
         return d
+
+    def clean_data_string(d_s):
+      bad_data = d_s.find("}{")
+      if bad_data > -1:
+        d_s = d_s[:bad_data+1]
+      return d_s
+
+    data_string = clean_data_string(data_string)
     d = to_utf8(json.loads(data_string))
     data = d['data']
+    update_self = False
     if 'cursor' in data.keys():
       user = userManager.get_user(data['name'])
       user.update_cursor(data['cursor']['x'], data['cursor']['y'])
@@ -94,13 +103,10 @@ class React(Protocol):
       #print ' \\n '.join(self.factory.buff[b_data['end']-b_data['change_y']+1:])
       self.factory.buff = self.factory.buff[:b_data['start']]   \
                           + b_data['buffer']                    \
-                          + self.factory.buff[b_data['end']-b_data['change_y']+1:b_data['buffer_size']]
+                          + self.factory.buff[b_data['end']-b_data['change_y']+1:]
       d['data']['updated_cursors'] += userManager.update_cursors(b_data, user)
-      print d
-      self.user.broadcast_packet(d, True)
-      return
-    print d
-    self.user.broadcast_packet(d, False)
+      update_self = True
+    self.user.broadcast_packet(d, update_self)
 
   #def connectionMade(self):
 
@@ -148,9 +154,11 @@ class User:
     }
 
   def broadcast_packet(self, obj, send_to_self = False):
+    obj_json = json.dumps(obj)
+    #print obj_json
     for name, user in userManager.users.iteritems():
       if user.name != self.name or send_to_self:
-        user.protocol.transport.write(json.dumps(obj))
+        user.protocol.transport.write(obj_json)
         #TODO: don't send yourself your own buffer, but del on a copy doesn't work
 
   def update_cursor(self, x, y):
@@ -206,7 +214,6 @@ class UserManager:
     for name, user in userManager.users.iteritems():
       updated = False
       if user != u:
-        print str(user.cursor.y) +','+ str(y_target)
         if user.cursor.y > y_target:
           user.cursor.y += buffer_data['change_y']
           updated = True

@@ -249,6 +249,7 @@ class CoVimScope:
       self.connection = reactor.connectTCP(addr, port, self.fact)
       self.reactor_thread = Thread(target=reactor.run, args=(False,))
       self.reactor_thread.start()
+      vim.command('autocmd VimLeave * py CoVim.quit()')
     elif (hasattr(self, 'port') and port != self.port) or (hasattr(self, 'addr') and addr != self.addr):
       print 'ERROR: Different address/port already used. To try another, restart Vim'
       return
@@ -265,7 +266,6 @@ class CoVimScope:
     vim.command(':autocmd!')
     vim.command('autocmd CursorMoved * py CoVim.cursor_update()')
     vim.command('autocmd CursorMovedI * py CoVim.buff_update()')
-    vim.command('autocmd VimLeave * py CoVim.quit()')
     vim.command("1new +setlocal\ stl=%!'CoVim-Collaborators'")
     self.buddylist = vim.current.buffer
     self.buddylist_window = vim.current.window

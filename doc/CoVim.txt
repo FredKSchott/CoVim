@@ -1,5 +1,37 @@
-*CoVim.txt*  A plugin that brings collaborative editing inside vim.
-                Author: FredKSchott
+*CoVim.txt*   Collaborative Editing for Vim
+*covim*
+
+
+                           ___           _            ~
+                       _  / __\___/\   /(_)_ __ ___   ~
+                      (_)/ /  / _ \ \ / / | '_ ` _ \  ~
+                       _/ /__| (_) \ V /| | | | | | | ~
+                      (_)____/\___/ \_/ |_|_| |_| |_| ~
+ 
+                              Reference Manual~
+
+==============================================================================
+CONTENTS                                                      *covim-contents*
+
+
+==============================================================================
+INTRO                                                            *covim-intro*
+
+
+==============================================================================
+ABOUT                                                            *covim-about*
+
+CoVim is currently maintained by the handsome:
+    Fred K. Schott (github: fredkschott)
+
+Find the latest version of CoVim here:
+    https://github.com/FredKSchott/CoVim
+
+
+==============================================================================
+LICENCE                                                        *covim-licence*
+
+See LICENSE 
 
 CoVim provides an easy way to define a vim instance as a server where your
 collaborators can join you and edit the file at the same time.

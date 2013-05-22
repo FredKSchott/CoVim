@@ -13,9 +13,35 @@
 ==============================================================================
 CONTENTS                                                      *covim-contents*
 
+    1.Intro...................................|covim-intro|
+    1.Usage...................................|covim-usage|
+    1.About...................................|covim-about|
+    1.License.................................|covim-license|
 
 ==============================================================================
 INTRO                                                            *covim-intro*
+
+CoVim provides an easy way to add people to your Vim session for real-time 
+collaboration. Once connected, other users will show up in your Vim client 
+with their own cursors, able to move around and edit anywhere in the document.
+
+Demo:
+https://github.com/FredKSchott/CoVim
+
+
+==============================================================================
+USAGE                                                            *covim-usage*
+
+To start a new CoVim server:
+  :CoVim start [port] [name] 
+  (or, start a CoVim server from the command line: ./server.py [port])
+
+To connect to a running server:
+  :CoVim connect [host address / 'localhost'] [port] [name]
+
+To disconnect:
+  :CoVim disconnect
+  (CoVim automatically disconnects on quit)
 
 
 ==============================================================================
@@ -31,47 +57,7 @@ Find the latest version of CoVim here:
 ==============================================================================
 LICENCE                                                        *covim-licence*
 
-See LICENSE 
-
-CoVim provides an easy way to define a vim instance as a server where your
-collaborators can join you and edit the file at the same time.
-
-Each collaborator gets a cursor of a different color and can be at different
-places in the file being edited.
-Every collaborator sees the change of the other in real time.
-
-Demo:
-https://github.com/FredKSchott/CoVim
+CoVim is licensed under MIT License. See LICENSE file for full license.
 
 
-                                                         *:CoVim*
-Declaring a vim instance as a CoVim server~
-
-Nothing simpler, just execute the following command: >
-:CoVim start [port] [name]
-
-Connecting to a server instance of CoVim~
-
-:CoVim connect [{host_address}|'localhost'] [port] [name]
-
-Disconnect from a shared CoVim session~
-
-:CoVim disconnect
-
-=============================================================================
-Installation~
-
-Dependency~
-
-Make sure you have installed twisted (distributed by python pip)
-pip install twisted
-
-With Vundle or Pathogen~
-
-Well I'm sure you know how it works by now!
-
-Manually~
-
-Add client.vim & server.py to your plugin folder: ~/.vim/plugin/
-
-vim:tw=78:fo=tcq2:isk=!-~,^*,^|,^":ts=8:ft=help:norl:
+ vim:tw=78:sw=4:ft=help:norl:

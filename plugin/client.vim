@@ -5,20 +5,20 @@ endif
 
 "Needs to be set on connect, MacVim overrides otherwise"
 function! SetCoVimColors ()
-  :hi CursorUser gui=bold term=bold cterm=bold 
-  :hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor4 ctermbg=DarkCyan ctermfg=White guibg=DarkCyan guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor5 ctermbg=DarkMagenta ctermfg=White guibg=DarkMagenta guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor6 ctermbg=Brown ctermfg=White guibg=Brown guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor7 ctermbg=LightRed ctermfg=Black guibg=LightRed guifg=Black gui=bold term=bold cterm=bold 
-  :hi Cursor8 ctermbg=LightBlue ctermfg=Black guibg=LightBlue guifg=Black gui=bold term=bold cterm=bold 
-  :hi Cursor9 ctermbg=LightGreen ctermfg=Black guibg=LightGreen guifg=Black gui=bold term=bold cterm=bold 
-  :hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold 
-  :hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold 
+  :hi CursorUser gui=bold term=bold cterm=bold
+  :hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold
+  :hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold
+  :hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold
+  :hi Cursor4 ctermbg=DarkCyan ctermfg=White guibg=DarkCyan guifg=White gui=bold term=bold cterm=bold
+  :hi Cursor5 ctermbg=DarkMagenta ctermfg=White guibg=DarkMagenta guifg=White gui=bold term=bold cterm=bold
+  :hi Cursor6 ctermbg=Brown ctermfg=White guibg=Brown guifg=White gui=bold term=bold cterm=bold
+  :hi Cursor7 ctermbg=LightRed ctermfg=Black guibg=LightRed guifg=Black gui=bold term=bold cterm=bold
+  :hi Cursor8 ctermbg=LightBlue ctermfg=Black guibg=LightBlue guifg=Black gui=bold term=bold cterm=bold
+  :hi Cursor9 ctermbg=LightGreen ctermfg=Black guibg=LightGreen guifg=Black gui=bold term=bold cterm=bold
+  :hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold
+  :hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold
 endfunction
- 
+
 :python import vim
 python << EOF
 
@@ -102,7 +102,7 @@ class VimProtocol(Protocol):
       if bad_data > -1:
         d_s = d_s[:bad_data+1]
       return d_s
-      
+
     data_string = clean_data_string(data_string)
     packet = to_utf8(json.loads(data_string))
     if 'packet_type' in packet.keys():
@@ -138,7 +138,7 @@ class VimProtocol(Protocol):
           # We need to update your own cursor as soon as possible, then update other cursors after
           for updated_user in data['updated_cursors']:
             if self.fact.me == updated_user['name'] and data['name'] != self.fact.me:
-              vim.current.window.cursor = (updated_user['cursor']['y'], updated_user['cursor']['x']) 
+              vim.current.window.cursor = (updated_user['cursor']['y'], updated_user['cursor']['x'])
           for updated_user in data['updated_cursors']:
             if self.fact.me != updated_user['name']:
               vim.command(':call matchdelete('+str(self.fact.colors[updated_user['name']][1]) + ')')
@@ -224,7 +224,7 @@ class VimFactory(ClientFactory):
       print 'Lost connection.'
   def clientConnectionFailed(self, connector, reason):
     CoVim.disconnect()
-    print 'Connection failed.' 
+    print 'Connection failed.'
 
 class CoVimScope:
   #def __init__(self):
@@ -238,7 +238,7 @@ class CoVimScope:
     if not addr and hasattr(self, 'addr') and self.addr:
       addr = self.addr
     if not addr or not port or not name:
-      print 'Syntax Error: Use form :Covim connect <server address> <port> <name>'  
+      print 'Syntax Error: Use form :Covim connect <server address> <port> <name>'
       return
     port = int(port)
     addr = str(addr)
@@ -274,8 +274,10 @@ class CoVimScope:
     if arg1=="connect":
       if arg2 and arg3 and arg4:
         self.initiate(arg2, arg3, arg4)
+      elif arg2 and arg3:
+        self.initiate('localhost', arg2, arg3)
       else:
-        print "usage :CoVim connect [host address] [port] [your name]"
+        print "usage :CoVim connect [host address - default: localhost] [port] [your name]"
     elif arg1=="disconnect":
       self.disconnect()
     elif arg1=="start":

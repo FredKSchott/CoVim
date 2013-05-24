@@ -47,7 +47,11 @@ To disconnect:
 ==============================================================================
 ABOUT                                                            *covim-about*
 
-CoVim is currently maintained by the handsome:
+CoVim was created by:
+    Fred K. Schott (github: fredkschott)
+    Sam M. Haney
+ 
+ CoVim is maintained on GitHub by:
     Fred K. Schott (github: fredkschott)
 
 Find the latest version of CoVim here:

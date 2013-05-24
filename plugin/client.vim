@@ -5,21 +5,30 @@ endif
 
 "Needs to be set on connect, MacVim overrides otherwise"
 function! SetCoVimColors ()
-  :hi CursorUser gui=bold term=bold cterm=bold 
-  :hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor4 ctermbg=DarkCyan ctermfg=White guibg=DarkCyan guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor5 ctermbg=DarkMagenta ctermfg=White guibg=DarkMagenta guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor6 ctermbg=Brown ctermfg=White guibg=Brown guifg=White gui=bold term=bold cterm=bold 
-  :hi Cursor7 ctermbg=LightRed ctermfg=Black guibg=LightRed guifg=Black gui=bold term=bold cterm=bold 
-  :hi Cursor8 ctermbg=LightBlue ctermfg=Black guibg=LightBlue guifg=Black gui=bold term=bold cterm=bold 
-  :hi Cursor9 ctermbg=LightGreen ctermfg=Black guibg=LightGreen guifg=Black gui=bold term=bold cterm=bold 
-  :hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold 
-  :hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold 
+  hi CursorUser gui=bold term=bold cterm=bold 
+  hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold 
+  hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold 
+  hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold 
+  hi Cursor4 ctermbg=DarkCyan ctermfg=White guibg=DarkCyan guifg=White gui=bold term=bold cterm=bold 
+  hi Cursor5 ctermbg=DarkMagenta ctermfg=White guibg=DarkMagenta guifg=White gui=bold term=bold cterm=bold 
+  hi Cursor6 ctermbg=Brown ctermfg=White guibg=Brown guifg=White gui=bold term=bold cterm=bold 
+  hi Cursor7 ctermbg=LightRed ctermfg=Black guibg=LightRed guifg=Black gui=bold term=bold cterm=bold 
+  hi Cursor8 ctermbg=LightBlue ctermfg=Black guibg=LightBlue guifg=Black gui=bold term=bold cterm=bold 
+  hi Cursor9 ctermbg=LightGreen ctermfg=Black guibg=LightGreen guifg=Black gui=bold term=bold cterm=bold 
+  hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold 
+  hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold 
 endfunction
  
-:python import vim
+function! s:SetGlobalOptDefault(opt, val) "{{{1
+  if !exists('g:' . a:opt)
+    let g:{a:opt} = a:val
+  endif
+endfunction
+" }}}1
+
+call s:SetGlobalOptDefault('covim_buddylist_pos', 'top')
+
+python import vim
 python << EOF
 
 from twisted.internet.protocol import ClientFactory, Protocol
@@ -266,10 +275,19 @@ class CoVimScope:
     vim.command('autocmd CursorMoved * py CoVim.cursor_update()')
     vim.command('autocmd CursorMovedI * py CoVim.buff_update()')
     vim.command('autocmd VimLeave * py CoVim.quit()')
-    vim.command("1new +setlocal\ stl=%!'CoVim-Collaborators'")
+    buddylist_pos = vim.eval('g:covim_buddylist_pos')
+    if buddylist_pos == 'left':
+      vim_cmd = 'vertical topleft 20new'
+    elif buddylist_pos == 'right':
+      vim_cmd = 'vertical botright 20new'
+    elif buddylist_pos == 'bottom':
+      vim_cmd = 'botright 1new'
+    else:
+      vim_cmd = 'topleft 1new'
+    vim.command(vim_cmd + " +setlocal\ ro\ stl=%!'CoVim-Collaborators'")
     self.buddylist = vim.current.buffer
     self.buddylist_window = vim.current.window
-    vim.command("wincmd j")
+    vim.command("wincmd p")
   def command(self, arg1=False, arg2=False, arg3=False, arg4=False):
     if arg1=="connect":
       if arg2 and arg3 and arg4:

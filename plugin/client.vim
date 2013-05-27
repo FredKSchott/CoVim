@@ -19,9 +19,9 @@ function! SetCoVimColors ()
   :hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold
 endfunction
 
-:python import vim
 python << EOF
 
+import vim
 import warnings
 warnings.filterwarnings('ignore',
     '.*',

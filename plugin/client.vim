@@ -57,7 +57,6 @@ class VimProtocol(Protocol):
     self.refreshBuddyList()
   def refreshBuddyList(self):
     buddylist_window_width = int(vim.eval('winwidth(0)'))
-    #TODO: Set Width to Autogrow with added/deleted users
     CoVim.buddylist[:] = ['']
     current_window_i = vim.eval('winnr()')
     x_a = 1
@@ -227,7 +226,6 @@ class VimFactory(ClientFactory):
     print 'Connection failed.'
 
 class CoVimScope:
-  #def __init__(self):
   def initiate(self, addr, port, name):
     #Check if connected. If connected, throw error.
     if hasattr(self, 'fact') and self.fact.isConnected:
@@ -250,17 +248,14 @@ class CoVimScope:
       self.reactor_thread = Thread(target=reactor.run, args=(False,))
       self.reactor_thread.start()
       vim.command('autocmd VimLeave * py CoVim.quit()')
+      print 'Connecting...'
     elif (hasattr(self, 'port') and port != self.port) or (hasattr(self, 'addr') and addr != self.addr):
-      print 'ERROR: Different address/port already used. To try another, restart Vim'
-      return
+      print 'ERROR: Different address/port already used. To try another, you need to restart Vim'
     else:
       self.fact.setup(name)
       self.connection.connect()
       print 'Reconnecting...'
-      return
-    #if first time run, setup
-    #if not connected, reconnect
-    print 'Connecting...'
+
   def setupWorkspace(self):
     vim.command('call SetCoVimColors()')
     vim.command(':autocmd!')
@@ -289,7 +284,7 @@ class CoVimScope:
       print "usage: CoVim [start] [connect] [disconnect]"
   def createServer(self, port, name):
     vim.command(':silent execute "!'+CoVimServerPath+' '+port+' &>/dev/null &"')
-    sleep(0.4)
+    sleep(0.5)
     self.initiate('localhost', port, name)
   def buff_update(self):
     reactor.callFromThread(self.fact.buff_update)

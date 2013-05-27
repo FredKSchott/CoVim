@@ -21,25 +21,15 @@ endfunction
 
 python << EOF
 
-import vim
-import warnings
-warnings.filterwarnings('ignore',
-    '.*',
-    UserWarning,)
-
-warnings.filterwarnings('ignore',
-    '.*',
-    DeprecationWarning,)
-
+import vim, os, json, warnings
 from twisted.internet.protocol import ClientFactory, Protocol
-#from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
-#from twisted.internet.interfaces import IReactorThreads
 from threading import Thread
-import json
-import os
 from time import sleep
 
+# Ignore Warnings
+warnings.filterwarnings('ignore','.*', UserWarning)
+warnings.filterwarnings('ignore','.*', DeprecationWarning)
 
 # Check for Vundle/Pathogen
 if os.path.exists(os.path.expanduser('~') + '/.vim/bundle/CoVim/plugin'):
@@ -47,6 +37,8 @@ if os.path.exists(os.path.expanduser('~') + '/.vim/bundle/CoVim/plugin'):
 else:
   CoVimServerPath = '~/.vim/plugin/server.py'
 
+
+## CoVim Protocol
 class VimProtocol(Protocol):
   def __init__(self, fact):
     self.fact = fact

@@ -22,6 +22,15 @@ endfunction
 :python import vim
 python << EOF
 
+import warnings
+warnings.filterwarnings('ignore',
+    '.*',
+    UserWarning,)
+
+warnings.filterwarnings('ignore',
+    '.*',
+    DeprecationWarning,)
+
 from twisted.internet.protocol import ClientFactory, Protocol
 #from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor

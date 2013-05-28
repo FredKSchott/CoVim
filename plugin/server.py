@@ -6,6 +6,13 @@ from twisted.internet import reactor
 import json
 import sys, re
 
+import argparse
+parser = argparse.ArgumentParser(description='Start a CoVim server.')
+parser.add_argument('-p', '--persist', action='store_true',
+                    help='Keep server running if all users disconnect')
+parser.add_argument('port', type=int, nargs='?', default=8123,
+                    help='Port number to run on')
+
 def name_validate(strg, search=re.compile(r'[^0-9a-zA-Z\-\_]').search):
   return not bool(search(strg))
 
@@ -235,5 +242,6 @@ class UserManager:
 userManager = UserManager()
 
 if __name__ == '__main__':
+  args = parser.parse_args()
   Server = ReactFactory()
-  Server.initiate(int(sys.argv[1]))
+  Server.initiate(args.port)

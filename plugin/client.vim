@@ -33,12 +33,8 @@ from time import sleep
 warnings.filterwarnings('ignore','.*', UserWarning)
 warnings.filterwarnings('ignore','.*', DeprecationWarning)
 
-# Check for Vundle/Pathogen
-if os.path.exists(os.path.expanduser('~') + '/.vim/bundle/CoVim/plugin'):
-  CoVimServerPath = '~/.vim/bundle/CoVim/plugin/server.py'
-else:
-  CoVimServerPath = '~/.vim/plugin/server.py'
-
+# Find the server path
+CoVimServerPath = vim.eval('expand("<sfile>:h")') + '/server.py'
 
 ## CoVim Protocol
 class VimProtocol(Protocol):

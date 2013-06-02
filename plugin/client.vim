@@ -1,7 +1,9 @@
 if !has('python')
-  echo "Error: Required vim compiled with +python"
+  com! -nargs=* CoVim echoerr "Error: Required vim compiled with +python"
   finish
 endif
+
+com! -nargs=+ CoVim py CoVim.command(<f-args>)
 
 "Needs to be set on connect, MacVim overrides otherwise"
 function! SetCoVimColors ()
@@ -311,5 +313,3 @@ class CoVimScope:
 
 CoVim = CoVimScope()
 EOF
-
-com! -nargs=+ CoVim py CoVim.command(<f-args>)

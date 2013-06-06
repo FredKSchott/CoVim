@@ -33,7 +33,7 @@ Also note that the Twisted library can be installed via apt-get & yum as well as
 ####Install Manually:
 
 1. `pip install twisted`
-2. Add `client.vim` & `server.py` to `~/.vim/plugin/`
+2. Add `CoVimClient.vim` & `CoVimServer.py` to `~/.vim/plugin/`
 
 
 ##Usage

@@ -34,7 +34,7 @@ warnings.filterwarnings('ignore','.*', UserWarning)
 warnings.filterwarnings('ignore','.*', DeprecationWarning)
 
 # Find the server path
-CoVimServerPath = vim.eval('expand("<sfile>:h")') + '/server.py'
+CoVimServerPath = vim.eval('expand("<sfile>:h")') + '/CoVimServer.py'
 
 ## CoVim Protocol
 class VimProtocol(Protocol):

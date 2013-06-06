@@ -1,8 +1,8 @@
+"Check for Python Support"
 if !has('python')
-  com! -nargs=* CoVim echoerr "Error: Required vim compiled with +python"
+  com! -nargs=* CoVim echoerr "Error: CoVim requires vim compiled with +python"
   finish
 endif
-
 com! -nargs=+ CoVim py CoVim.command(<f-args>)
 
 "Needs to be set on connect, MacVim overrides otherwise"

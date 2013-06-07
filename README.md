@@ -39,7 +39,7 @@ Also note that the Twisted library can be installed via apt-get & yum as well as
 ##Usage
 __To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)  
 __To connect to a running server:__ `:CoVim connect [host address / 'localhost'] [port] [name]`  
-__To disconnect:__ `Quit Vim` or `:CoVim disconnect`  
+__To disconnect:__ 'Quit All' Vim or `:CoVim disconnect`  
 
 ##Links
 __[Announcement Post](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__  

@@ -41,7 +41,7 @@ CoVimServerPath = vim.eval('expand("<sfile>:h")') + '/CoVimServer.py'
 
 
 ## CoVim Protocol
-class VimProtocol(Protocol):
+class CoVimProtocol(Protocol):
     def __init__(self, fact):
         self.fact = fact
 
@@ -49,7 +49,7 @@ class VimProtocol(Protocol):
             self.transport.write(event)
 
     def connectionMade(self):
-        self.send(self.fact.me)
+        self.send(CoVim.username)
 
     def dataReceived(self, data_string):
         def to_utf8(d):
@@ -97,7 +97,7 @@ class VimProtocol(Protocol):
                     CoVim.remUser(data['name'])
                     print data['name']+' disconnected from this document'
             if packet['packet_type'] == 'update':
-                if 'buffer' in data.keys() and data['name'] != self.fact.me:
+                if 'buffer' in data.keys() and data['name'] != CoVim.username:
                     b_data = data['buffer']
                     self.fact.buffer = vim.current.buffer[:b_data['start']]   \
                                                          + b_data['buffer']   \
@@ -106,10 +106,10 @@ class VimProtocol(Protocol):
                 if 'updated_cursors' in data.keys():
                     # We need to update your own cursor as soon as possible, then update other cursors after
                     for updated_user in data['updated_cursors']:
-                        if self.fact.me == updated_user['name'] and data['name'] != self.fact.me:
+                        if CoVim.username == updated_user['name'] and data['name'] != CoVim.username:
                             vim.current.window.cursor = (updated_user['cursor']['y'], updated_user['cursor']['x'])
                     for updated_user in data['updated_cursors']:
-                        if self.fact.me != updated_user['name']:
+                        if CoVim.username != updated_user['name']:
                             vim.command(':call matchdelete('+str(self.fact.colors[updated_user['name']][1]) + ')')
                             vim.command(':call matchadd(\''+self.fact.colors[updated_user['name']][0]+'\', \'\%' + str(updated_user['cursor']['x']) + 'v.\%'+str(updated_user['cursor']['y'])+'l\', 10, ' + str(self.fact.colors[updated_user['name']][1]) + ')')
                 #data['cursor']['x'] = max(1,data['cursor']['x'])
@@ -117,16 +117,14 @@ class VimProtocol(Protocol):
             vim.command(':redraw')
 
 
-#CoVimFactory - Handles Socket Communications
+#CoVimFactory - Handles Socket Communication
 class CoVimFactory(ClientFactory):
 
-    def __init__(self, name):
+    def __init__(self):
         self.id_count = 4
-        self.setup(name)
+        self.setup()
 
-    def setup(self, me=False):
-        if me:
-            self.me = me
+    def setup(self):
         self.buddylist_matches = []
         self.colors = {}
         self.color_count = 1
@@ -134,7 +132,7 @@ class CoVimFactory(ClientFactory):
         vim.command('autocmd VimLeave * py CoVim.quit()')
 
     def buildProtocol(self, addr):
-        self.p = VimProtocol(self)
+        self.p = CoVimProtocol(self)
         return self.p
 
     def startFactory(self):
@@ -151,7 +149,7 @@ class CoVimFactory(ClientFactory):
                     "x": max(1, vim.current.window.cursor[1]),
                     "y": vim.current.window.cursor[0]
                 },
-                "name": self.me
+                "name": CoVim.username
             }
         }
         d = self.create_update_packet(d)
@@ -166,7 +164,7 @@ class CoVimFactory(ClientFactory):
                     "x": max(1, vim.current.window.cursor[1]+1),
                     "y": vim.current.window.cursor[0]
                 },
-                "name": self.me
+                "name": CoVim.username
             }
         }
         d = self.create_update_packet(d)
@@ -228,7 +226,8 @@ class CoVimScope:
         if not hasattr(self, 'connection'):
             self.addr = addr
             self.port = port
-            self.fact = CoVimFactory(name)
+            self.username = name
+            self.fact = CoVimFactory()
             self.connection = reactor.connectTCP(addr, port, self.fact)
             self.reactor_thread = Thread(target=reactor.run, args=(False,))
             self.reactor_thread.start()
@@ -236,7 +235,7 @@ class CoVimScope:
         elif (hasattr(self, 'port') and port != self.port) or (hasattr(self, 'addr') and addr != self.addr):
             print 'ERROR: Different address/port already used. To try another, you need to restart Vim'
         else:
-            self.fact.setup(name)
+            self.fact.setup()
             self.connection.connect()
             print 'Reconnecting...'
 
@@ -277,7 +276,7 @@ class CoVimScope:
 
     def addUsers(self, list):
         for user_obj in list:
-            if user_obj['name'] == self.fact.me:
+            if user_obj['name'] == CoVim.username:
                 self.fact.colors[user_obj['name']] = ('CursorUser', 4000)
             else:
                 self.fact.colors[user_obj['name']] = ('Cursor' + str(self.fact.color_count), self.fact.id_count)
@@ -320,7 +319,7 @@ class CoVimScope:
             vim.command("q!")
             self.fact.buddylist_matches = []
             for name in self.fact.colors.keys():
-                if name != self.fact.me:
+                if name != CoVim.username:
                     vim.command(':call matchdelete('+str(self.fact.colors[name][1]) + ')')
             del(self.buddylist)
         if hasattr(self, 'buddylist_window'):

@@ -110,8 +110,8 @@ class CoVimProtocol(Protocol):
                             vim.current.window.cursor = (updated_user['cursor']['y'], updated_user['cursor']['x'])
                     for updated_user in data['updated_cursors']:
                         if CoVim.username != updated_user['name']:
-                            vim.command(':call matchdelete('+str(self.fact.colors[updated_user['name']][1]) + ')')
-                            vim.command(':call matchadd(\''+self.fact.colors[updated_user['name']][0]+'\', \'\%' + str(updated_user['cursor']['x']) + 'v.\%'+str(updated_user['cursor']['y'])+'l\', 10, ' + str(self.fact.colors[updated_user['name']][1]) + ')')
+                            vim.command(':call matchdelete('+str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
+                            vim.command(':call matchadd(\''+CoVim.collab_manager.collaborators[updated_user['name']][0]+'\', \'\%' + str(updated_user['cursor']['x']) + 'v.\%'+str(updated_user['cursor']['y'])+'l\', 10, ' + str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
                 #data['cursor']['x'] = max(1,data['cursor']['x'])
                 #print str(data['cursor']['x'])+', '+str(data['cursor']['y'])
             vim.command(':redraw')
@@ -119,16 +119,6 @@ class CoVimProtocol(Protocol):
 
 #CoVimFactory - Handles Socket Communication
 class CoVimFactory(ClientFactory):
-
-    def __init__(self):
-        self.id_count = 4
-        self.setup()
-
-    def setup(self):
-        self.buddylist_matches = []
-        self.colors = {}
-        self.color_count = 1
-        vim.command('autocmd VimLeave * py CoVim.quit()')
 
     def buildProtocol(self, addr):
         self.p = CoVimProtocol(self)
@@ -205,6 +195,59 @@ class CoVimFactory(ClientFactory):
         CoVim.disconnect()
         print 'Connection failed.'
 
+
+#Manage Collaborators
+class CollaboratorManager:
+
+    def __init__(self):
+        self.collab_id_itr = 4
+        self.reset()
+
+    def reset(self):
+        self.collab_color_itr = 1
+        self.collaborators = {}
+        self.buddylist_highlight_ids = []
+
+    def addUser(self, user_obj):
+            if user_obj['name'] == CoVim.username:
+                self.collaborators[user_obj['name']] = ('CursorUser', 4000)
+            else:
+                self.collaborators[user_obj['name']] = ('Cursor' + str(self.collab_color_itr), self.collab_id_itr)
+                self.collab_id_itr += 1
+                self.collab_color_itr = (self.collab_id_itr-3) % 11
+                vim.command(':call matchadd(\''+self.collaborators[user_obj['name']][0]+'\', \'\%' + str(user_obj['cursor']['x']) + 'v.\%'+str(user_obj['cursor']['y'])+'l\', 10, ' + str(self.collaborators[user_obj['name']][1]) + ')')
+            self.refreshCollabDisplay()
+
+    def remUser(self, name):
+        vim.command('call matchdelete('+str(self.collaborators[name][1]) + ')')
+        del(self.collaborators[name])
+        self.refreshCollabDisplay()
+
+    def refreshCollabDisplay(self):
+        buddylist_window_width = int(vim.eval('winwidth(0)'))
+        CoVim.buddylist[:] = ['']
+        current_window_i = vim.eval('winnr()')
+        x_a = 1
+        line_i = 0
+        vim.command("1wincmd w")
+        for match_id in self.buddylist_highlight_ids:
+            vim.command('call matchdelete('+str(match_id) + ')')
+        self.buddylist_highlight_ids = []
+        for name in self.collaborators.keys():
+            x_b = x_a + len(name)
+            if x_b > buddylist_window_width:
+                line_i += 1
+                x_a = 1
+                x_b = x_a + len(name)
+                CoVim.buddylist.append('')
+                vim.command('resize '+str(line_i+1))
+            CoVim.buddylist[line_i] += name+' '
+            self.buddylist_highlight_ids.append(vim.eval('matchadd(\''+self.collaborators[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\%'+str(line_i+1)+'l\',10,'+str(self.collaborators[name][1]+2000)+')'))
+            x_a = x_b + 1
+        vim.command(str(current_window_i)+"wincmd w")
+
+
+#Manage all of CoVim
 class CoVimScope:
 
     def initiate(self, addr, port, name):
@@ -221,12 +264,14 @@ class CoVimScope:
             return
         port = int(port)
         addr = str(addr)
+        vim.command('autocmd VimLeave * py CoVim.quit()')
         if not hasattr(self, 'connection'):
             self.addr = addr
             self.port = port
             self.username = name
             self.vim_buffer = []
             self.fact = CoVimFactory()
+            self.collab_manager = CollaboratorManager()
             self.connection = reactor.connectTCP(addr, port, self.fact)
             self.reactor_thread = Thread(target=reactor.run, args=(False,))
             self.reactor_thread.start()
@@ -234,9 +279,14 @@ class CoVimScope:
         elif (hasattr(self, 'port') and port != self.port) or (hasattr(self, 'addr') and addr != self.addr):
             print 'ERROR: Different address/port already used. To try another, you need to restart Vim'
         else:
-            self.fact.setup()
+            self.collab_manager.reset()
             self.connection.connect()
             print 'Reconnecting...'
+
+    def createServer(self, port, name):
+        vim.command(':silent execute "!'+CoVimServerPath+' '+port+' &>/dev/null &"')
+        sleep(0.5)
+        self.initiate('localhost', port, name)
 
     def setupWorkspace(self):
         vim.command('call SetCoVimColors()')
@@ -248,6 +298,15 @@ class CoVimScope:
         self.buddylist = vim.current.buffer
         self.buddylist_window = vim.current.window
         vim.command("wincmd j")
+
+    def addUsers(self, list):
+        map(self.collab_manager.addUser, list)
+
+    def remUser(self, name):
+        self.collab_manager.remUser(name)
+
+    def refreshCollabDisplay(self):
+        self.collab_manager.refreshCollabDisplay()
 
     def command(self, arg1=False, arg2=False, arg3=False, arg4=False):
         if arg1 == "connect":
@@ -268,58 +327,14 @@ class CoVimScope:
         else:
             print "usage: CoVim [start] [connect] [disconnect]"
 
-    def createServer(self, port, name):
-        vim.command(':silent execute "!'+CoVimServerPath+' '+port+' &>/dev/null &"')
-        sleep(0.5)
-        self.initiate('localhost', port, name)
-
-    def addUsers(self, list):
-        for user_obj in list:
-            if user_obj['name'] == CoVim.username:
-                self.fact.colors[user_obj['name']] = ('CursorUser', 4000)
-            else:
-                self.fact.colors[user_obj['name']] = ('Cursor' + str(self.fact.color_count), self.fact.id_count)
-                self.fact.id_count += 1
-                self.fact.color_count = (self.fact.id_count-3) % 11
-                vim.command(':call matchadd(\''+self.fact.colors[user_obj['name']][0]+'\', \'\%' + str(user_obj['cursor']['x']) + 'v.\%'+str(user_obj['cursor']['y'])+'l\', 10, ' + str(self.fact.colors[user_obj['name']][1]) + ')')
-            self.refreshBuddyList()
-
-    def remUser(self, name):
-        vim.command('call matchdelete('+str(self.fact.colors[name][1]) + ')')
-        del(self.fact.colors[name])
-        self.refreshBuddyList()
-
-    def refreshBuddyList(self):
-        buddylist_window_width = int(vim.eval('winwidth(0)'))
-        CoVim.buddylist[:] = ['']
-        current_window_i = vim.eval('winnr()')
-        x_a = 1
-        line_i = 0
-        vim.command("1wincmd w")
-        for match_id in self.fact.buddylist_matches:
-            vim.command('call matchdelete('+str(match_id) + ')')
-        self.fact.buddylist_matches = []
-        for name in self.fact.colors.keys():
-            x_b = x_a + len(name)
-            if x_b > buddylist_window_width:
-                line_i += 1
-                x_a = 1
-                x_b = x_a + len(name)
-                CoVim.buddylist.append('')
-                vim.command('resize '+str(line_i+1))
-            CoVim.buddylist[line_i] += name+' '
-            self.fact.buddylist_matches.append(vim.eval('matchadd(\''+self.fact.colors[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\%'+str(line_i+1)+'l\',10,'+str(self.fact.colors[name][1]+2000)+')'))
-            x_a = x_b + 1
-        vim.command(str(current_window_i)+"wincmd w")
-
     def disconnect(self):
         if hasattr(self, 'buddylist'):
             vim.command("1wincmd w")
             vim.command("q!")
-            self.fact.buddylist_matches = []
-            for name in self.fact.colors.keys():
+            self.collab_manager.buddylist_highlight_ids = []
+            for name in self.collab_manager.collaborators.keys():
                 if name != CoVim.username:
-                    vim.command(':call matchdelete('+str(self.fact.colors[name][1]) + ')')
+                    vim.command(':call matchdelete('+str(self.collab_manager.collaborators[name][1]) + ')')
             del(self.buddylist)
         if hasattr(self, 'buddylist_window'):
             del(self.buddylist_window)

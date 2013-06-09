@@ -86,8 +86,8 @@ class CoVimProtocol(Protocol):
                 if data['message_type'] == 'connect_success':
                     CoVim.setupWorkspace()
                     if 'buffer' in data.keys():
-                        self.fact.buffer = data['buffer']
-                        vim.current.buffer[:] = self.fact.buffer
+                        CoVim.vim_buffer = data['buffer']
+                        vim.current.buffer[:] = CoVim.vim_buffer
                     CoVim.addUsers(data['collaborators'])
                     print 'Success! You\'re now connected [Port '+str(CoVim.port)+']'
                 if data['message_type'] == 'user_connected':
@@ -99,10 +99,10 @@ class CoVimProtocol(Protocol):
             if packet['packet_type'] == 'update':
                 if 'buffer' in data.keys() and data['name'] != CoVim.username:
                     b_data = data['buffer']
-                    self.fact.buffer = vim.current.buffer[:b_data['start']]   \
+                    CoVim.vim_buffer = vim.current.buffer[:b_data['start']]   \
                                                          + b_data['buffer']   \
                                                          + vim.current.buffer[b_data['end']-b_data['change_y']+1:]
-                    vim.current.buffer[:] = self.fact.buffer
+                    vim.current.buffer[:] = CoVim.vim_buffer
                 if 'updated_cursors' in data.keys():
                     # We need to update your own cursor as soon as possible, then update other cursors after
                     for updated_user in data['updated_cursors']:
@@ -128,7 +128,6 @@ class CoVimFactory(ClientFactory):
         self.buddylist_matches = []
         self.colors = {}
         self.color_count = 1
-        self.buffer = []
         vim.command('autocmd VimLeave * py CoVim.quit()')
 
     def buildProtocol(self, addr):
@@ -173,13 +172,13 @@ class CoVimFactory(ClientFactory):
 
     def create_update_packet(self, d):
         current_buffer = vim.current.buffer[:]
-        if current_buffer != self.buffer:
+        if current_buffer != CoVim.vim_buffer:
             cursor_y = vim.current.window.cursor[0] - 1
-            change_y = len(current_buffer) - len(self.buffer)
+            change_y = len(current_buffer) - len(CoVim.vim_buffer)
             change_x = 0
-            if len(self.buffer) > cursor_y-change_y and cursor_y-change_y >= 0 \
+            if len(CoVim.vim_buffer) > cursor_y-change_y and cursor_y-change_y >= 0 \
                 and len(current_buffer) > cursor_y and cursor_y >= 0:
-                change_x = len(current_buffer[cursor_y]) - len(self.buffer[cursor_y-change_y])
+                change_x = len(current_buffer[cursor_y]) - len(CoVim.vim_buffer[cursor_y-change_y])
             limits = {
                 'from': max(0, cursor_y-abs(change_y)),
                 'to': min(len(vim.current.buffer)-1, cursor_y+abs(change_y))
@@ -193,7 +192,7 @@ class CoVimFactory(ClientFactory):
                 'buffer_size': len(current_buffer)
             }
             d['data']['buffer'] = d_buffer
-            self.buffer = current_buffer
+            CoVim.vim_buffer = current_buffer
         return d
 
     def clientConnectionLost(self, connector, reason):
@@ -205,7 +204,6 @@ class CoVimFactory(ClientFactory):
     def clientConnectionFailed(self, connector, reason):
         CoVim.disconnect()
         print 'Connection failed.'
-
 
 class CoVimScope:
 
@@ -227,6 +225,7 @@ class CoVimScope:
             self.addr = addr
             self.port = port
             self.username = name
+            self.vim_buffer = []
             self.fact = CoVimFactory()
             self.connection = reactor.connectTCP(addr, port, self.fact)
             self.reactor_thread = Thread(target=reactor.run, args=(False,))

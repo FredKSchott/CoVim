@@ -3,23 +3,30 @@ if !has('python')
     com! -nargs=* CoVim echoerr "Error: CoVim requires vim compiled with +python"
     finish
 endif
-com! -nargs=+ CoVim py CoVim.command(<f-args>)
+com! -nargs=* CoVim py CoVim.command(<f-args>)
 
 "Needs to be set on connect, MacVim overrides otherwise"
 function! SetCoVimColors ()
-    :hi CursorUser gui=bold term=bold cterm=bold
-    :hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold
-    :hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold
-    :hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold
-    :hi Cursor4 ctermbg=DarkCyan ctermfg=White guibg=DarkCyan guifg=White gui=bold term=bold cterm=bold
-    :hi Cursor5 ctermbg=DarkMagenta ctermfg=White guibg=DarkMagenta guifg=White gui=bold term=bold cterm=bold
-    :hi Cursor6 ctermbg=Brown ctermfg=White guibg=Brown guifg=White gui=bold term=bold cterm=bold
-    :hi Cursor7 ctermbg=LightRed ctermfg=Black guibg=LightRed guifg=Black gui=bold term=bold cterm=bold
-    :hi Cursor8 ctermbg=LightBlue ctermfg=Black guibg=LightBlue guifg=Black gui=bold term=bold cterm=bold
-    :hi Cursor9 ctermbg=LightGreen ctermfg=Black guibg=LightGreen guifg=Black gui=bold term=bold cterm=bold
-    :hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold
-    :hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold
+    hi CursorUser gui=bold term=bold cterm=bold
+    hi Cursor1 ctermbg=DarkRed ctermfg=White guibg=DarkRed guifg=White gui=bold term=bold cterm=bold
+    hi Cursor2 ctermbg=DarkBlue ctermfg=White guibg=DarkBlue guifg=White gui=bold term=bold cterm=bold
+    hi Cursor3 ctermbg=DarkGreen ctermfg=White guibg=DarkGreen guifg=White gui=bold term=bold cterm=bold
+    hi Cursor4 ctermbg=DarkCyan ctermfg=White guibg=DarkCyan guifg=White gui=bold term=bold cterm=bold
+    hi Cursor5 ctermbg=DarkMagenta ctermfg=White guibg=DarkMagenta guifg=White gui=bold term=bold cterm=bold
+    hi Cursor6 ctermbg=Brown ctermfg=White guibg=Brown guifg=White gui=bold term=bold cterm=bold
+    hi Cursor7 ctermbg=LightRed ctermfg=Black guibg=LightRed guifg=Black gui=bold term=bold cterm=bold
+    hi Cursor8 ctermbg=LightBlue ctermfg=Black guibg=LightBlue guifg=Black gui=bold term=bold cterm=bold
+    hi Cursor9 ctermbg=LightGreen ctermfg=Black guibg=LightGreen guifg=Black gui=bold term=bold cterm=bold
+    hi Cursor10 ctermbg=LightCyan ctermfg=Black guibg=LightCyan guifg=Black gui=bold term=bold cterm=bold
+    hi Cursor0 ctermbg=LightYellow ctermfg=Black guibg=LightYellow guifg=Black gui=bold term=bold cterm=bold
 endfunction
+
+if !exists("CoVim_default_name")
+    let CoVim_default_name = 0
+endif
+if !exists("CoVim_default_port")
+    let CoVim_default_port = 0
+endif
 
 python << EOF
 
@@ -38,7 +45,6 @@ warnings.filterwarnings('ignore', '.*', DeprecationWarning)
 
 # Find the server path
 CoVimServerPath = vim.eval('expand("<sfile>:h")') + '/CoVimServer.py'
-
 
 ## CoVim Protocol
 class CoVimProtocol(Protocol):
@@ -226,7 +232,6 @@ class CollaboratorManager:
     def refreshCollabDisplay(self):
         buddylist_window_width = int(vim.eval('winwidth(0)'))
         CoVim.buddylist[:] = ['']
-        current_window_i = vim.eval('winnr()')
         x_a = 1
         line_i = 0
         vim.command("1wincmd w")
@@ -244,7 +249,7 @@ class CollaboratorManager:
             CoVim.buddylist[line_i] += name+' '
             self.buddylist_highlight_ids.append(vim.eval('matchadd(\''+self.collaborators[name][0]+'\',\'\%<'+str(x_b)+'v.\%>'+str(x_a)+'v\%'+str(line_i+1)+'l\',10,'+str(self.collaborators[name][1]+2000)+')'))
             x_a = x_b + 1
-        vim.command(str(current_window_i)+"wincmd w")
+        vim.command("wincmd p")
 
 
 #Manage all of CoVim
@@ -309,21 +314,31 @@ class CoVimScope:
         self.collab_manager.refreshCollabDisplay()
 
     def command(self, arg1=False, arg2=False, arg3=False, arg4=False):
+        default_name = vim.eval('CoVim_default_name')
+        default_name_string = "" if default_name == '0' else " - default: "+default_name
+        default_port = vim.eval('CoVim_default_port')
+        default_port_string = "" if default_port == '0' else " - default: "+default_port
+        help_string = "" if (default_name != '0' or default_port != '0') else " (Note: You can set defaults in your .vimrc)"
         if arg1 == "connect":
             if arg2 and arg3 and arg4:
                 self.initiate(arg2, arg3, arg4)
-            elif arg2 and arg3:
-                self.initiate('localhost', arg2, arg3)
+            elif arg2 and arg3 and default_name != '0':
+                self.initiate(arg2, arg3, default_name)
+            elif arg2 and default_port != '0' and default_name != '0':
+                self.initiate(arg2, default_port, default_name)
             else:
-
-                print "usage :CoVim connect [host address - default: localhost] [port] [your name]"
+                print "usage :CoVim connect [host address / 'localhost'] [port"+default_port_string+"] [name"+default_name_string+"]"+help_string
         elif arg1 == "disconnect":
             self.disconnect()
         elif arg1 == "start":
             if arg2 and arg3:
                 self.createServer(arg2, arg3)
+            elif arg2 and default_name != '0':
+                self.createServer(arg2, default_name)
+            elif default_port != '0' and default_name != '0':
+                self.createServer(default_port, default_name)
             else:
-                print "usage: CoVim start [port] [your name]"
+                print "usage :CoVim start [port"+default_port_string+"] [name"+default_name_string+"]"+help_string
         else:
             print "usage: CoVim [start] [connect] [disconnect]"
 

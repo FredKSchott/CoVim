@@ -14,9 +14,10 @@
 CONTENTS                                                      *covim-contents*
 
     1.Intro...................................|covim-intro|
-    1.Usage...................................|covim-usage|
-    1.About...................................|covim-about|
-    1.License.................................|covim-license|
+    2.Usage...................................|covim-usage|
+    3.Customization...........................|covim-customization|
+    4.About...................................|covim-about|
+    5.License.................................|covim-license|
 
 ==============================================================================
 INTRO                                                            *covim-intro*
@@ -43,6 +44,14 @@ To disconnect:
   :CoVim disconnect
   (CoVim automatically disconnects on quit)
 
+
+==============================================================================
+CUSTOMIZATION                                            *covim-customization*
+
+Setting Default Name & Port:
+  Add these lines to your .vimrc:
+    let CoVim_default_name = "YOURNAME"
+    let CoVim_default_port = "YOURPORT"
 
 ==============================================================================
 ABOUT                                                            *covim-about*

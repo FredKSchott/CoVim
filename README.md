@@ -41,6 +41,7 @@ __To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the comm
 __To connect to a running server:__ `:CoVim connect [host address / 'localhost'] [port] [name]`  
 __To disconnect:__ 'Quit All' Vim or `:CoVim disconnect`  
 
+
 ##Links
 __[Announcement Post](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__  
 __[FAQ](https://github.com/FredKSchott/CoVim/wiki/FAQ)__  

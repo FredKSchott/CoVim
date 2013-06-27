@@ -357,8 +357,11 @@ class CoVimScope:
             del(self.buddylist)
         if hasattr(self, 'buddylist_window'):
             del(self.buddylist_window)
-        reactor.callFromThread(self.connection.disconnect)
-        print 'Successfully disconnected from document!'
+        if hasattr(self, 'connection'):
+            reactor.callFromThread(self.connection.disconnect)
+            print 'Successfully disconnected from document!'
+        else:
+            print 'Not currently connected.'
 
     def quit(self):
         reactor.callFromThread(reactor.stop)

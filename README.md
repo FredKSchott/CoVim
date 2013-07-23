@@ -44,5 +44,5 @@ __To disconnect:__ 'Quit All' Vim or `:CoVim disconnect`
 
 ##Links
 __[Announcement Post](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__  
-__[FAQ](https://github.com/FredKSchott/CoVim/wiki/FAQ)__  
-__[Troubleshooting](https://github.com/FredKSchott/CoVim/wiki/Troubleshooting)__
+__[FAQ](https://github.com/FredKSchott/CoVim/wiki#faq)__  
+__[Troubleshooting](https://github.com/FredKSchott/CoVim/wiki#troubleshooting)__

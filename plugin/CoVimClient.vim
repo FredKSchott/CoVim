@@ -333,6 +333,8 @@ class CoVimScope:
                 print "usage :CoVim connect [host address / 'localhost'] [port"+default_port_string+"] [name"+default_name_string+"]"+help_string
         elif arg1 == "disconnect":
             self.disconnect()
+        elif arg1 == "quit":
+            self.exit()
         elif arg1 == "start":
             if arg2 and arg3:
                 self.createServer(arg2, arg3)
@@ -343,8 +345,15 @@ class CoVimScope:
             else:
                 print "usage :CoVim start [port"+default_port_string+"] [name"+default_name_string+"]"+help_string
         else:
-            print "usage: CoVim [start] [connect] [disconnect]"
+            print "usage: CoVim [start] [connect] [disconnect] [quit]"
         first_command = False
+
+    def exit(self):
+        if hasattr(self, 'buddylist_window') and hasattr(self, 'connection'):
+            self.disconnect()
+            vim.command('q')
+        else:
+            print "ERROR: CoVim must be running to use this command"
 
     def disconnect(self):
         if hasattr(self, 'buddylist'):
@@ -361,7 +370,7 @@ class CoVimScope:
             reactor.callFromThread(self.connection.disconnect)
             print 'Successfully disconnected from document!'
         else:
-            print 'Not currently connected.'
+            print "ERROR: CoVim must be running to use this command"
 
     def quit(self):
         reactor.callFromThread(reactor.stop)

@@ -42,8 +42,11 @@ To connect to a running server:
 
 To disconnect:
   :CoVim disconnect
-  (CoVim automatically disconnects on quit)
+  (CoVim automatically disconnects when quitting Vim)
 
+To quit Vim while CoVim is connected:
+  :CoVim quit
+  (or :qall!)
 
 ==============================================================================
 CUSTOMIZATION                                            *covim-customization*

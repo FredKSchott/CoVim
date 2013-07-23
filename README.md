@@ -34,13 +34,21 @@ Also note that the Twisted library can be installed via apt-get & yum as well as
 
 1. `pip install twisted`
 2. Add `CoVimClient.vim` & `CoVimServer.py` to `~/.vim/plugin/`
-
-
+    
 ##Usage
 __To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)  
 __To connect to a running server:__ `:CoVim connect [host address / 'localhost'] [port] [name]`  
 __To disconnect:__ `:CoVim disconnect`  
 __To quit Vim while CoVim is connected:__ `:CoVim quit` or `:qall!`
+
+
+##Customization
+####Add any the following to your .vimrc to customize CoVim:
+
+```
+let CoVim_default_name = "YOURNAME"
+let CoVim_default_port = "YOURPORT"  
+```
 
 ##Links
 __[Announcement Post](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__  

@@ -46,8 +46,6 @@ warnings.filterwarnings('ignore', '.*', DeprecationWarning)
 # Find the server path
 CoVimServerPath = vim.eval('expand("<sfile>:h")') + '/CoVimServer.py'
 
-first_command = True
-
 ## CoVim Protocol
 class CoVimProtocol(Protocol):
     def __init__(self, fact):
@@ -316,12 +314,10 @@ class CoVimScope:
         self.collab_manager.refreshCollabDisplay()
 
     def command(self, arg1=False, arg2=False, arg3=False, arg4=False):
-        global first_command
         default_name = vim.eval('CoVim_default_name')
         default_name_string = " - default: '"+default_name+"'" if default_name != '0' else ""
         default_port = vim.eval('CoVim_default_port')
         default_port_string = " - default: "+default_port if default_port != '0' else ""
-        help_string = " (Note: argument defaults can be set in your .vimrc)" if first_command and default_name == '0' and default_port == '0' else ""
         if arg1 == "connect":
             if arg2 and arg3 and arg4:
                 self.initiate(arg2, arg3, arg4)
@@ -330,7 +326,7 @@ class CoVimScope:
             elif arg2 and default_port != '0' and default_name != '0':
                 self.initiate(arg2, default_port, default_name)
             else:
-                print "usage :CoVim connect [host address / 'localhost'] [port"+default_port_string+"] [name"+default_name_string+"]"+help_string
+                print "usage :CoVim connect [host address / 'localhost'] [port"+default_port_string+"] [name"+default_name_string+"]"
         elif arg1 == "disconnect":
             self.disconnect()
         elif arg1 == "quit":
@@ -343,10 +339,9 @@ class CoVimScope:
             elif default_port != '0' and default_name != '0':
                 self.createServer(default_port, default_name)
             else:
-                print "usage :CoVim start [port"+default_port_string+"] [name"+default_name_string+"]"+help_string
+                print "usage :CoVim start [port"+default_port_string+"] [name"+default_name_string+"]"
         else:
             print "usage: CoVim [start] [connect] [disconnect] [quit]"
-        first_command = False
 
     def exit(self):
         if hasattr(self, 'buddylist_window') and hasattr(self, 'connection'):

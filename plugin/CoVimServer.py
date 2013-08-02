@@ -35,9 +35,9 @@ class React(Protocol):
     # Handle duplicate name
     if userManager.has_user(name):
       d = {
-        'packet_type':'message',
+        'packet_type': 'message',
         'data': {
-          'message_type':'error_newname_taken'
+          'message_type': 'error_newname_taken'
         }
       }
       self.transport.write(json.dumps(d))
@@ -46,9 +46,9 @@ class React(Protocol):
     # Handle spaces in name
     if not name_validate(name):
       d = {
-        'packet_type':'message',
+        'packet_type': 'message',
         'data': {
-          'message_type':'error_newname_invalid'
+          'message_type': 'error_newname_invalid'
         }
       }
       self.transport.write(json.dumps(d))
@@ -59,25 +59,25 @@ class React(Protocol):
     userManager.add_user(self.user)
     self.state = "CHAT"
     d = {
-      'packet_type':'message',
+      'packet_type': 'message',
       'data': {
-        'message_type':'connect_success',
-        'name':name,
-        'collaborators':userManager.all_users_to_json()
+        'message_type': 'connect_success',
+        'name': name,
+        'collaborators': userManager.all_users_to_json()
       }
     }
 
     if userManager.is_multi():
       d['data']['buffer'] = self.factory.buff
     self.transport.write(json.dumps(d))
-    print 'User "' + self.user.name + '" Connected'
+    print 'User "{user_name}" Connected'.format(user_name=self.user.name)
 
     # Alert other Collaborators of new user
     d = {
-      'packet_type':'message',
+      'packet_type': 'message',
       'data': {
-        'message_type':'user_connected',
-        'user':self.user.to_json()
+        'message_type': 'user_connected',
+        'user': self.user.to_json()
       }
     }
     self.user.broadcast_packet(d)
@@ -143,7 +143,7 @@ class ReactFactory(Factory):
   def initiate(self, port):
     self.port = port
     print 'Now listening on port {port}...'.format(port=port)
-    reactor.listenTCP(port,self)
+    reactor.listenTCP(port, self)
     reactor.run()
 
   def buildProtocol(self, addr):
@@ -174,7 +174,7 @@ class User:
       'cursor': self.cursor.to_json()
     }
 
-  def broadcast_packet(self, obj, send_to_self = False):
+  def broadcast_packet(self, obj, send_to_self=False):
     obj_json = json.dumps(obj)
     #print obj_json
     for name, user in userManager.users.iteritems():
@@ -201,7 +201,7 @@ class UserManager:
   def has_user(self, search_name):
     return self.users.get(search_name)
 
-  def add_user(self,u):
+  def add_user(self, u):
     self.users[u.name] = u
 
   def get_user(self, u_name):
@@ -213,14 +213,14 @@ class UserManager:
   def rem_user(self, user):
     if self.users.get(user.name):
       d = {
-        'packet_type':'message',
+        'packet_type': 'message',
         'data': {
-          'message_type':'user_disconnected',
-          'name':user.name
+          'message_type': 'user_disconnected',
+          'name': user.name
         }
       }
       user.broadcast_packet(d)
-      print 'User "' + user.name + '" Disconnected'
+      print 'User "{user_name}" Disconnected'.format(user_name=user.name)
       del self.users[user.name]
 
   def all_users_to_json(self):
@@ -238,18 +238,17 @@ class UserManager:
           user.cursor.y += buffer_data['change_y']
           updated = True
         if user.cursor.y == y_target and user.cursor.x > x_target:
-          user.cursor.x = max(1, user.cursor.x+buffer_data['change_x'])
+          user.cursor.x = max(1, user.cursor.x + buffer_data['change_x'])
           updated = True
-        if user.cursor.y == y_target-1 and user.cursor.x > x_target and buffer_data['change_y']==1:
+        if user.cursor.y == y_target - 1 and user.cursor.x > x_target \
+           and buffer_data['change_y'] == 1:
           user.cursor.y += 1
-          user.cursor.x = max(1, user.cursor.x+buffer_data['change_x'])
+          user.cursor.x = max(1, user.cursor.x + buffer_data['change_x'])
           updated = True
         #TODO: If the line was just split?
         if updated:
           return_arr.append(user.to_json())
     return return_arr
-
-
 
 
 userManager = UserManager()

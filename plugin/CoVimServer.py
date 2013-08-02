@@ -1,73 +1,83 @@
 #!/usr/bin/env python2
 
+import re
+import json
+import argparse
+
 from twisted.internet.protocol import Factory, Protocol
 #from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
-import json
-import sys, re
 
-import argparse
 parser = argparse.ArgumentParser(description='Start a CoVim server.')
 parser.add_argument('-p', '--persist', action='store_true',
                     help='Keep server running if all users disconnect')
 parser.add_argument('port', type=int, nargs='?', default=8555,
                     help='Port number to run on')
 
+
 def name_validate(strg, search=re.compile(r'[^0-9a-zA-Z\-\_]').search):
   return not bool(search(strg))
 
+
 class React(Protocol):
+
   def __init__(self, factory):
     self.factory = factory
     self.state = "GETNAME"
+
   def dataReceived(self, data):
     if self.state == "GETNAME":
       self.handle_GETNAME(data)
     else:
       self.handle_BUFF(data)
+
   def handle_GETNAME(self, name):
-    # Handle duplicate name 
+    # Handle duplicate name
     if userManager.has_user(name):
       d = {
-        'packet_type':'message',
+        'packet_type': 'message',
         'data': {
-          'message_type':'error_newname_taken'
+          'message_type': 'error_newname_taken'
         }
       }
       self.transport.write(json.dumps(d))
       return
+
     # Handle spaces in name
     if not name_validate(name):
       d = {
-        'packet_type':'message',
+        'packet_type': 'message',
         'data': {
-          'message_type':'error_newname_invalid'
+          'message_type': 'error_newname_invalid'
         }
       }
       self.transport.write(json.dumps(d))
       return
+
     # Name is Valid, Add to Document
     self.user = User(name, self)
     userManager.add_user(self.user)
     self.state = "CHAT"
     d = {
-      'packet_type':'message',
+      'packet_type': 'message',
       'data': {
-        'message_type':'connect_success',
-        'name':name,
-        'collaborators':userManager.all_users_to_json()
+        'message_type': 'connect_success',
+        'name': name,
+        'collaborators': userManager.all_users_to_json()
       }
     }
+
     if userManager.is_multi():
-      d['data']['buffer'] = self.factory.buff 
+      d['data']['buffer'] = self.factory.buff
     self.transport.write(json.dumps(d))
-    print 'User "'+self.user.name+'" Connected'
+    print 'User "{user_name}" Connected'.format(user_name=self.user.name)
+
     # Alert other Collaborators of new user
     d = {
-      'packet_type':'message',
+      'packet_type': 'message',
       'data': {
-        'message_type':'user_connected',
-        'user':self.user.to_json()
+        'message_type': 'user_connected',
+        'user': self.user.to_json()
       }
     }
     self.user.broadcast_packet(d)
@@ -97,11 +107,13 @@ class React(Protocol):
     d = to_utf8(json.loads(data_string))
     data = d['data']
     update_self = False
+
     if 'cursor' in data.keys():
       user = userManager.get_user(data['name'])
       user.update_cursor(data['cursor']['x'], data['cursor']['y'])
       d['data']['updated_cursors'] = [user.to_json()]
       del d['data']['cursor']
+
     if 'buffer' in data.keys():
       b_data = data['buffer']
       #TODO: Improve Speed: If change_y = 0, just replace that one line
@@ -115,8 +127,6 @@ class React(Protocol):
       update_self = True
     self.user.broadcast_packet(d, update_self)
 
-  #def connectionMade(self):
-
   def connectionLost(self, reason):
     if hasattr(self, 'user'):
       userManager.rem_user(self.user)
@@ -124,16 +134,20 @@ class React(Protocol):
         print 'All users disconnected. Shutting down...'
         reactor.stop()
 
+
 class ReactFactory(Factory):
+
   def __init__(self):
     self.buff = []
+
   def initiate(self, port):
     self.port = port
-    print 'Now listening on port '+str(port)+'...'
-    reactor.listenTCP(port,self)
+    print 'Now listening on port {port}...'.format(port=port)
+    reactor.listenTCP(port, self)
     reactor.run()
+
   def buildProtocol(self, addr):
-    return React(self) 
+    return React(self)
 
 
 class Cursor:
@@ -160,7 +174,7 @@ class User:
       'cursor': self.cursor.to_json()
     }
 
-  def broadcast_packet(self, obj, send_to_self = False):
+  def broadcast_packet(self, obj, send_to_self=False):
     obj_json = json.dumps(obj)
     #print obj_json
     for name, user in userManager.users.iteritems():
@@ -174,21 +188,22 @@ class User:
 
 
 class UserManager:
+
   def __init__(self):
     self.users = {}
-  
+
   def is_empty(self):
-    return len(self.users)==0
-  
+    return not self.users
+
   def is_multi(self):
-    return len(self.users)>1
-  
+    return len(self.users) > 1
+
   def has_user(self, search_name):
-    return self.users.has_key(search_name)
-  
-  def add_user(self,u):
+    return self.users.get(search_name)
+
+  def add_user(self, u):
     self.users[u.name] = u
-  
+
   def get_user(self, u_name):
     try:
       return self.users[u_name]
@@ -196,47 +211,44 @@ class UserManager:
       raise Exception('user doesnt exist')
 
   def rem_user(self, user):
-    if self.users.has_key(user.name):
+    if self.users.get(user.name):
       d = {
-        'packet_type':'message',
+        'packet_type': 'message',
         'data': {
-          'message_type':'user_disconnected',
-          'name':user.name
+          'message_type': 'user_disconnected',
+          'name': user.name
         }
       }
       user.broadcast_packet(d)
-      print 'User "'+user.name+'" Disconnected'
+      print 'User "{user_name}" Disconnected'.format(user_name=user.name)
       del self.users[user.name]
 
   def all_users_to_json(self):
-    return_arr = []
-    for name, user in userManager.users.iteritems():
-      return_arr.append(user.to_json())
-    return return_arr
+    return [user.to_json() for user in userManager.users.values()]
 
   def update_cursors(self, buffer_data, u):
     return_arr = []
     y_target = u.cursor.y
     x_target = u.cursor.x
-    for name, user in userManager.users.iteritems():
+
+    for user in userManager.users.values():
       updated = False
       if user != u:
         if user.cursor.y > y_target:
           user.cursor.y += buffer_data['change_y']
           updated = True
         if user.cursor.y == y_target and user.cursor.x > x_target:
-          user.cursor.x = max(1, user.cursor.x+buffer_data['change_x'])
+          user.cursor.x = max(1, user.cursor.x + buffer_data['change_x'])
           updated = True
-        if user.cursor.y == y_target-1 and user.cursor.x > x_target and buffer_data['change_y']==1:
+        if user.cursor.y == y_target - 1 and user.cursor.x > x_target \
+           and buffer_data['change_y'] == 1:
           user.cursor.y += 1
-          user.cursor.x = max(1, user.cursor.x+buffer_data['change_x'])
+          user.cursor.x = max(1, user.cursor.x + buffer_data['change_x'])
           updated = True
         #TODO: If the line was just split?
         if updated:
           return_arr.append(user.to_json())
     return return_arr
-
-
 
 
 userManager = UserManager()

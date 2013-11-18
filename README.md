@@ -16,23 +16,23 @@ __Follow [@FredKSchott](http://www.twitter.com/fredkschott) for development news
 ##Installation
 
 CoVim requires a version of Vim compiled with python 2.5+. Visit [Troubleshooting](https://github.com/FredKSchott/CoVim/wiki/Troubleshooting) if you're having trouble starting Vim.
-Also note that the Twisted library can be installed via apt-get & yum as well as pip.
+Also note that the Twisted & Argparse libraries can also be installed via apt-get & yum.
 
 ####Install With [Pathogen](https://github.com/tpope/vim-pathogen):
 
-1. `pip install twisted`
+1. `pip install twisted argparse`
 2. `cd ~/.vim/bundle`
 3. `git clone git://github.com/FredKSchott/CoVim.git`  
 
 ####Install With [Vundle](https://github.com/gmarik/vundle):
 
-1. `pip install twisted`
+1. `pip install twisted argparse`
 2. Add `Bundle 'FredKSchott/CoVim'` to your `~/.vimrc`
 3. `vim +BundleInstall +qall`
 
 ####Install Manually:
 
-1. `pip install twisted`
+1. `pip install twisted argparse`
 2. Add `CoVimClient.vim` & `CoVimServer.py` to `~/.vim/plugin/`
     
 ##Usage

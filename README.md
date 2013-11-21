@@ -34,7 +34,14 @@ Also note that the Twisted & Argparse libraries can also be installed via apt-ge
 
 1. `pip install twisted argparse`
 2. Add `CoVimClient.vim` & `CoVimServer.py` to `~/.vim/plugin/`
-    
+
+***
+If Vim is having trouble finding modules (twisted, argparse, etc) do the following:
+
+1. run `pip show MODULE_NAME` and get the `Location:` path
+2. add the following line to your .vimrc: `python import sys; sys.path.append("/module/location/path/")`
+3. Repeat until all modules are included in your path
+
 ##Usage
 __To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)  
 __To connect to a running server:__ `:CoVim connect [host address / 'localhost'] [port] [name]`  

@@ -4,19 +4,6 @@ if !has('python')
     finish
 endif
 
-"Check for Python Modules"
-if not empty(system('python -c "import twisted"'))
-    com! -nargs=* CoVim echoerr "Error: CoVim requires Python Module twisted"
-    echoerr "Error: CoVim requires Python Module twisted"
-    finish
-endif
-
-if not empty(system('python -c "import argparse"'))
-    com! -nargs=* CoVim echoerr "Error: CoVim requires Python Module argparse"
-    echoerr "Error: CoVim requires Python Module argparse"
-    finish
-endif
-
 com! -nargs=* CoVim py CoVim.command(<f-args>)
 
 "Needs to be set on connect, MacVim overrides otherwise"

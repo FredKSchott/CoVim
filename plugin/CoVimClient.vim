@@ -5,13 +5,13 @@ if !has('python')
 endif
 
 "Check for Python Modules"
-if empty(system('python -c "import twisted"'))
+if not empty(system('python -c "import twisted"'))
     com! -nargs=* CoVim echoerr "Error: CoVim requires Python Module twisted"
     echoerr "Error: CoVim requires Python Module twisted"
     finish
 endif
 
-if empty(system('python -c "import argparse"'))
+if not empty(system('python -c "import argparse"'))
     com! -nargs=* CoVim echoerr "Error: CoVim requires Python Module argparse"
     echoerr "Error: CoVim requires Python Module argparse"
     finish

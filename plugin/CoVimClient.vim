@@ -297,8 +297,8 @@ class CoVimScope:
     def setupWorkspace(self):
         vim.command('call SetCoVimColors()')
         vim.command(':autocmd!')
-        vim.command('autocmd CursorMoved * py reactor.callFromThread(CoVim.fact.cursor_update)')
-        vim.command('autocmd CursorMovedI * py reactor.callFromThread(CoVim.fact.buff_update)')
+        vim.command('autocmd CursorMoved <buffer> py reactor.callFromThread(CoVim.fact.cursor_update)')
+        vim.command('autocmd CursorMovedI <buffer> py reactor.callFromThread(CoVim.fact.buff_update)')
         vim.command('autocmd VimLeave * py CoVim.quit()')
         vim.command("1new +setlocal\ stl=%!'CoVim-Collaborators'")
         self.buddylist = vim.current.buffer

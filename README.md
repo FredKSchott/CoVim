@@ -70,4 +70,3 @@ __[Troubleshooting](https://github.com/FredKSchott/CoVim/wiki#troubleshooting)__
 
 ##Special Thanks
 Tufts Professor [Ming Chow](www.linkedin.com/in/mchow01) for leading the [Senior Capstone Project](http://tuftsdev.github.io/SoftwareEngineering/) that CoVim was born in.  
-[factor[e] design initiative](http://thenounproject.com/factor_e/) for the CoVim icon.  

@@ -70,3 +70,6 @@ __[Troubleshooting](https://github.com/FredKSchott/CoVim/wiki#troubleshooting)__
 
 ##Special Thanks
 Tufts Professor [Ming Chow](www.linkedin.com/in/mchow01) for leading the [Senior Capstone Project](http://tuftsdev.github.io/SoftwareEngineering/) that CoVim was born in.  
+
+[![Analytics](https://ga-beacon.appspot.com/UA-39778226-2/CoVim/Readme.md)](https://github.com/igrigorik/ga-beacon)
+

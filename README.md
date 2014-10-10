@@ -48,7 +48,7 @@ Also note that the Twisted & Argparse libraries can also be installed via apt-ge
 > If you're still having trouble, [visit the wiki](https://github.com/FredKSchott/CoVim/wiki) for additional troubleshooting & FAQ 
 
 ##Usage
-__To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)  
+__To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./CoVimServer.py [port]`)  
 __To connect to a running server:__ `:CoVim connect [host address / 'localhost'] [port] [name]`  
 __To disconnect:__ `:CoVim disconnect`  
 __To quit Vim while CoVim is connected:__ `:CoVim quit` or `:qall!`

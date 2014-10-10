@@ -35,7 +35,7 @@ USAGE                                                            *covim-usage*
 
 To start a new CoVim server:
   :CoVim start [port] [name] 
-  (or, start a CoVim server from the command line: ./server.py [port])
+  (or, start a CoVim server from the command line: ./CoVimServer.py [port])
 
 To connect to a running server:
   :CoVim connect [host address / 'localhost'] [port] [name]

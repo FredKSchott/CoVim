@@ -45,7 +45,7 @@ Also note that the Twisted & Argparse libraries can also be installed via apt-ge
 > 2. add the following line to your .vimrc: `python import sys; sys.path.append("/module/location/path/")` using the module path found in step 1.
 > 3. Repeat until all modules are included in your path
 > 
-> If you're still having trouble, [visit the wiki](https://github.com/FredKSchott/CoVim/wiki) for addition troubleshooting & FAQ 
+> If you're still having trouble, [visit the wiki](https://github.com/FredKSchott/CoVim/wiki) for additional troubleshooting & FAQ 
 
 ##Usage
 __To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./server.py [port]`)  

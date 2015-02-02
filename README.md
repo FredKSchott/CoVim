@@ -31,8 +31,8 @@ Also note that the Twisted & Argparse libraries can also be installed via apt-ge
 ####Install With [Vundle](https://github.com/gmarik/vundle):
 
 1. `pip install twisted argparse`
-2. Add `Bundle 'FredKSchott/CoVim'` to your `~/.vimrc`
-3. `vim +BundleInstall +qall`
+2. Add `Plugin 'FredKSchott/CoVim'` to your `~/.vimrc`
+3. `vim +PluginInstall +qall`
 
 ####Install Manually:
 

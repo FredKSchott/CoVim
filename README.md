@@ -1,4 +1,4 @@
-<img src="http://fredkschott.com/images/CoVim_Icon.png" /> CoVim
+<img src="http://fredkschott.com/img/CoVim_Icon.png" width="91" height="91" /> CoVim
 ==========================
 Collaborative Editing for Vim (One of Vim's [most requested features](http://www.vim.org/sponsor/vote_results.php)) is finally here! Think Google Docs for Vim. 
 

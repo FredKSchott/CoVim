@@ -70,7 +70,7 @@ class React(Protocol):
     if userManager.is_multi():
       d['data']['buffer'] = self.factory.buff
     self.transport.write(json.dumps(d))
-    print 'User "{user_name}" Connected'.format(user_name=self.user.name)
+    print('User "{user_name}" Connected'.format(user_name=self.user.name))
 
     # Alert other Collaborators of new user
     d = {
@@ -131,7 +131,7 @@ class React(Protocol):
     if hasattr(self, 'user'):
       userManager.rem_user(self.user)
       if userManager.is_empty():
-        print 'All users disconnected. Shutting down...'
+        print('All users disconnected. Shutting down...')
         reactor.stop()
 
 
@@ -142,7 +142,7 @@ class ReactFactory(Factory):
 
   def initiate(self, port):
     self.port = port
-    print 'Now listening on port {port}...'.format(port=port)
+    print('Now listening on port {port}...'.format(port=port))
     reactor.listenTCP(port, self)
     reactor.run()
 
@@ -208,7 +208,7 @@ class UserManager:
     try:
       return self.users[u_name]
     except KeyError:
-      raise Exception('user doesnt exist')
+      raise(Exception('user doesnt exist'))
 
   def rem_user(self, user):
     if self.users.get(user.name):
@@ -220,7 +220,7 @@ class UserManager:
         }
       }
       user.broadcast_packet(d)
-      print 'User "{user_name}" Disconnected'.format(user_name=user.name)
+      print('User "{user_name}" Disconnected'.format(user_name=user.name))
       del self.users[user.name]
 
   def all_users_to_json(self):

@@ -24,25 +24,25 @@ Also note that the Twisted & Argparse libraries can also be installed via apt-ge
 
 ####Install With [Pathogen](https://github.com/tpope/vim-pathogen):
 
-1. `pip install twisted argparse`
+1. `pip3 install twisted argparse`
 2. `cd ~/.vim/bundle`
 3. `git clone git://github.com/FredKSchott/CoVim.git`  
 
 ####Install With [Vundle](https://github.com/gmarik/vundle):
 
-1. `pip install twisted argparse`
+1. `pip3 install twisted argparse`
 2. Add `Plugin 'FredKSchott/CoVim'` to your `~/.vimrc`
 3. `vim +PluginInstall +qall`
 
 ####Install Manually:
 
-1. `pip install twisted argparse`
+1. `pip3 install twisted argparse`
 2. Add `CoVimClient.vim` & `CoVimServer.py` to `~/.vim/plugin/`
 
 > If Vim is having trouble finding modules (twisted, argparse, etc) do the following:
 > 
-> 1. run `pip show MODULE_NAME` and get the `Location:` path
-> 2. add the following line to your .vimrc: `python import sys; sys.path.append("/module/location/path/")` using the module path found in step 1.
+> 1. run `pip3 show MODULE_NAME` and get the `Location:` path
+> 2. add the following line to your .vimrc: `python3 import sys; sys.path.append("/module/location/path/")` using the module path found in step 1.
 > 3. Repeat until all modules are included in your path
 > 
 > If you're still having trouble, [visit the wiki](https://github.com/FredKSchott/CoVim/wiki) for additional troubleshooting & FAQ 

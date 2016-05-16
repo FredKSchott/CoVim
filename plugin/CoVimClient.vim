@@ -105,8 +105,8 @@ class CoVimProtocol(Protocol):
                             vim.current.window.cursor = (updated_user['cursor']['y'], updated_user['cursor']['x'])
                     for updated_user in data['updated_cursors']:
                         if CoVim.username != updated_user['name']:
-                            vim.command(':call matchdelete('+str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
-                            vim.command(':call matchadd(\''+CoVim.collab_manager.collaborators[updated_user['name']][0]+'\', \'\%' + str(updated_user['cursor']['x']) + 'v.\%'+str(updated_user['cursor']['y'])+'l\', 10, ' + str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
+                            vim.command(':call matchdelete(' + str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
+                            vim.command(':call matchadd(\'' + CoVim.collab_manager.collaborators[updated_user['name']][0] + '\', \'\%' + str(updated_user['cursor']['x']) + 'v.\%' + str(updated_user['cursor']['y']) + 'l\', 10, ' + str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
                 #data['cursor']['x'] = max(1,data['cursor']['x'])
                 #print(str(data['cursor']['x'])+', '+str(data['cursor']['y'])
             vim.command(':redraw')
@@ -204,14 +204,14 @@ class CollaboratorManager:
         self.buddylist_highlight_ids = []
 
     def addUser(self, user_obj):
-            if user_obj['name'] == CoVim.username:
-                self.collaborators[user_obj['name']] = ('CursorUser', 4000)
-            else:
-                self.collaborators[user_obj['name']] = ('Cursor' + str(self.collab_color_itr), self.collab_id_itr)
-                self.collab_id_itr += 1
-                self.collab_color_itr = (self.collab_id_itr-3) % 11
-                vim.command(':call matchadd(\''+self.collaborators[user_obj['name']][0]+'\', \'\%' + str(user_obj['cursor']['x']) + 'v.\%'+str(user_obj['cursor']['y'])+'l\', 10, ' + str(self.collaborators[user_obj['name']][1]) + ')')
-            self.refreshCollabDisplay()
+        if user_obj['name'] == CoVim.username:
+            self.collaborators[user_obj['name']] = ('CursorUser', 4000)
+        else:
+            self.collaborators[user_obj['name']] = ('Cursor' + str(self.collab_color_itr), self.collab_id_itr)
+            self.collab_id_itr += 1
+            self.collab_color_itr = (self.collab_id_itr-3) % 11
+            vim.command(':call matchadd(\''+self.collaborators[user_obj['name']][0]+'\', \'\%' + str(user_obj['cursor']['x']) + 'v.\%'+str(user_obj['cursor']['y'])+'l\', 10, ' + str(self.collaborators[user_obj['name']][1]) + ')')
+        self.refreshCollabDisplay()
 
     def remUser(self, name):
         vim.command('call matchdelete('+str(self.collaborators[name][1]) + ')')
@@ -293,8 +293,8 @@ class CoVimScope:
         self.buddylist_window = vim.current.window
         vim.command("wincmd j")
 
-    def addUsers(self, list):
-        map(self.collab_manager.addUser, list)
+    def addUsers(self, userlist):
+        list(map(self.collab_manager.addUser, userlist))
 
     def remUser(self, name):
         self.collab_manager.remUser(name)

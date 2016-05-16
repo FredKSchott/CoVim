@@ -164,7 +164,7 @@ class User:
 
   def broadcast_packet(self, obj, send_to_self=False):
     obj_json = json.dumps(obj)
-    #print obj_json
+    #print(obj_json)
     for name, user in userManager.users.items():
       if user.name != self.name or send_to_self:
         user.protocol.transport.write(obj_json.encode('utf-8'))

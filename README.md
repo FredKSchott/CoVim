@@ -19,7 +19,7 @@ __Follow [@FredKSchott](http://www.twitter.com/fredkschott) for development news
 
 ##Installation
 
-CoVim requires a version of Vim compiled with python 2.5+. Visit [Troubleshooting](https://github.com/FredKSchott/CoVim/wiki#troubleshooting) if you're having trouble starting Vim.
+CoVim requires a version of Vim compiled with python 3.0+. Visit [Troubleshooting](https://github.com/FredKSchott/CoVim/wiki#troubleshooting) if you're having trouble starting Vim.
 Also note that the Twisted & Argparse libraries can also be installed via apt-get & yum.
 
 ####Install With [Pathogen](https://github.com/tpope/vim-pathogen):

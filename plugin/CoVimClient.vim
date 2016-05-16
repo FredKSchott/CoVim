@@ -270,7 +270,7 @@ class CoVimScope:
             return
         port = int(port)
         addr = str(addr)
-        vim.command('autocmd VimLeave * py CoVim.quit()')
+        vim.command('autocmd VimLeave * py3 CoVim.quit()')
         if not hasattr(self, 'connection'):
             self.addr = addr
             self.port = port
@@ -297,9 +297,9 @@ class CoVimScope:
     def setupWorkspace(self):
         vim.command('call SetCoVimColors()')
         vim.command(':autocmd!')
-        vim.command('autocmd CursorMoved <buffer> py reactor.callFromThread(CoVim.fact.cursor_update)')
-        vim.command('autocmd CursorMovedI <buffer> py reactor.callFromThread(CoVim.fact.buff_update)')
-        vim.command('autocmd VimLeave * py CoVim.quit()')
+        vim.command('autocmd CursorMoved <buffer> py3 reactor.callFromThread(CoVim.fact.cursor_update)')
+        vim.command('autocmd CursorMovedI <buffer> py3 reactor.callFromThread(CoVim.fact.buff_update)')
+        vim.command('autocmd VimLeave * py3 CoVim.quit()')
         vim.command("1new +setlocal\ stl=%!'CoVim-Collaborators'")
         self.buddylist = vim.current.buffer
         self.buddylist_window = vim.current.window

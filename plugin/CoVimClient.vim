@@ -53,34 +53,22 @@ class CoVimProtocol(Protocol):
         self.fact = fact
 
     def send(self, event):
-            self.transport.write(event)
+        self.transport.write(event.encode('utf-8'))
 
     def connectionMade(self):
         self.send(CoVim.username)
 
     def dataReceived(self, data_string):
-        def to_utf8(d):
-            if isinstance(d, dict):
-                # no dict comprehension in python2.5/2.6
-                d2 = {}
-                for key, value in d.iteritems():
-                    d2[to_utf8(key)] = to_utf8(value)
-                return d2
-            elif isinstance(d, list):
-                return map(to_utf8, d)
-            elif isinstance(d, unicode):
-                return d.encode('utf-8')
-            else:
-                return d
-
         def clean_data_string(d_s):
             bad_data = d_s.find("}{")
             if bad_data > -1:
                 d_s = d_s[:bad_data+1]
             return d_s
-
+         
+        if isinstance(data_string, bytes):
+            data_string = data_string.decode('utf-8')
         data_string = clean_data_string(data_string)
-        packet = to_utf8(json.loads(data_string))
+        packet = json.loads(data_string)
         if 'packet_type' in packet.keys():
             data = packet['data']
             if packet['packet_type'] == 'message':

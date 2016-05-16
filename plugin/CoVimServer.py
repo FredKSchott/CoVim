@@ -27,7 +27,7 @@ class React(Protocol):
 
   def dataReceived(self, data):
     if self.state == "GETNAME":
-      self.handle_GETNAME(data)
+      self.handle_GETNAME(data.decode('utf-8'))
     else:
       self.handle_BUFF(data)
 
@@ -40,7 +40,7 @@ class React(Protocol):
           'message_type': 'error_newname_taken'
         }
       }
-      self.transport.write(json.dumps(d))
+      self.transport.write(json.dumps(d).encode('utf-8'))
       return
 
     # Handle spaces in name
@@ -51,7 +51,7 @@ class React(Protocol):
           'message_type': 'error_newname_invalid'
         }
       }
-      self.transport.write(json.dumps(d))
+      self.transport.write(json.dumps(d).encode('utf-8'))
       return
 
     # Name is Valid, Add to Document
@@ -69,7 +69,7 @@ class React(Protocol):
 
     if userManager.is_multi():
       d['data']['buffer'] = self.factory.buff
-    self.transport.write(json.dumps(d))
+    self.transport.write(json.dumps(d).encode('utf-8'))
     print('User "{user_name}" Connected'.format(user_name=self.user.name))
 
     # Alert other Collaborators of new user
@@ -83,28 +83,16 @@ class React(Protocol):
     self.user.broadcast_packet(d)
 
   def handle_BUFF(self, data_string):
-    def to_utf8(d):
-      if isinstance(d, dict):
-        # no dict comprehension in python2.5/2.6
-        d2 = {}
-        for key, value in d.iteritems():
-          d2[to_utf8(key)] = to_utf8(value)
-        return d2
-      elif isinstance(d, list):
-        return map(to_utf8, d)
-      elif isinstance(d, unicode):
-        return d.encode('utf-8')
-      else:
-        return d
-
     def clean_data_string(d_s):
       bad_data = d_s.find("}{")
       if bad_data > -1:
         d_s = d_s[:bad_data+1]
       return d_s
 
+    if isinstance(data_string, bytes):
+        data_string = data_string.decode('utf-8')
     data_string = clean_data_string(data_string)
-    d = to_utf8(json.loads(data_string))
+    d = json.loads(data_string)
     data = d['data']
     update_self = False
 
@@ -177,9 +165,9 @@ class User:
   def broadcast_packet(self, obj, send_to_self=False):
     obj_json = json.dumps(obj)
     #print obj_json
-    for name, user in userManager.users.iteritems():
+    for name, user in userManager.users.items():
       if user.name != self.name or send_to_self:
-        user.protocol.transport.write(obj_json)
+        user.protocol.transport.write(obj_json.encode('utf-8'))
         #TODO: don't send yourself your own buffer, but del on a copy doesn't work
 
   def update_cursor(self, x, y):

@@ -15,7 +15,7 @@ __Follow [@FredKSchott](http://www.twitter.com/fredkschott) for development news
 - Displays collaborators with uniquely colored cursors 
 - Works with your existing configuration
 - Easy to set up & use
-- And [More!](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)
+- And [More!](http://fredkschott.com/post/2013/05/introducing-covim-real-time-collaboration-for-vim/)
 
 ##Installation
 

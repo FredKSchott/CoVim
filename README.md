@@ -22,6 +22,10 @@ __Follow [@FredKSchott](http://www.twitter.com/fredkschott) for development news
 CoVim requires a version of Vim compiled with python 2.5+. Visit [Troubleshooting](https://github.com/FredKSchott/CoVim/wiki#troubleshooting) if you're having trouble starting Vim.
 Also note that the Twisted & Argparse libraries can also be installed via apt-get & yum.
 
+####Install python-dev for your platform:
+
+`sudo apt-get install python-dev`
+
 ####Install With [Pathogen](https://github.com/tpope/vim-pathogen):
 
 1. `pip install twisted argparse service_identity`

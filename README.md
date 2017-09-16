@@ -10,31 +10,31 @@ __Follow [@FredKSchott](http://www.twitter.com/fredkschott) for development news
 
 ![Demo Gif](http://i.imgur.com/CZeKkAI.gif "Demo Gif")
 
-##Features
+## Features
 - Allows multiple users to connect to the same document online
 - Displays collaborators with uniquely colored cursors 
 - Works with your existing configuration
 - Easy to set up & use
 - And [More!](http://fredkschott.com/post/2013/05/introducing-covim-real-time-collaboration-for-vim/)
 
-##Installation
+## Installation
 
 CoVim requires a version of Vim compiled with python 2.5+. Visit [Troubleshooting](https://github.com/FredKSchott/CoVim/wiki#troubleshooting) if you're having trouble starting Vim.
 Also note that the Twisted & Argparse libraries can also be installed via apt-get & yum.
 
-####Install With [Pathogen](https://github.com/tpope/vim-pathogen):
+#### Install With [Pathogen](https://github.com/tpope/vim-pathogen):
 
 1. `pip install twisted argparse service_identity`
 2. `cd ~/.vim/bundle`
 3. `git clone git://github.com/FredKSchott/CoVim.git`  
 
-####Install With [Vundle](https://github.com/gmarik/vundle):
+#### Install With [Vundle](https://github.com/gmarik/vundle):
 
 1. `pip install twisted argparse service_identity`
 2. Add `Plugin 'FredKSchott/CoVim'` to your `~/.vimrc`
 3. `vim +PluginInstall +qall`
 
-####Install Manually:
+#### Install Manually:
 
 1. `pip install twisted argparse service_identity`
 2. Add `CoVimClient.vim` & `CoVimServer.py` to `~/.vim/plugin/`
@@ -47,28 +47,28 @@ Also note that the Twisted & Argparse libraries can also be installed via apt-ge
 > 
 > If you're still having trouble, [visit the wiki](https://github.com/FredKSchott/CoVim/wiki) for additional troubleshooting & FAQ 
 
-##Usage
+## Usage
 __To start a new CoVim server:__ `:CoVim start [port] [name]` (or, from the command line: `./CoVimServer.py [port]`)  
 __To connect to a running server:__ `:CoVim connect [host address / 'localhost'] [port] [name]`  
 __To disconnect:__ `:CoVim disconnect`  
 __To quit Vim while CoVim is connected:__ `:CoVim quit` or `:qall!`
 
 
-##Customization
-####Add any the following to your .vimrc to customize CoVim:
+## Customization
+#### Add any the following to your .vimrc to customize CoVim:
 
 ```
 let CoVim_default_name = "YOURNAME"
 let CoVim_default_port = "YOURPORT"  
 ```
 
-##Links
+## Links
 __[Announcement Post](http://www.fredkschott.com/post/50510962864/introducing-covim-collaborative-editing-for-vim)__  
 __[FAQ](https://github.com/FredKSchott/CoVim/wiki#faq)__  
 __[Troubleshooting](https://github.com/FredKSchott/CoVim/wiki#troubleshooting)__
 
 
-##Special Thanks
+## Special Thanks
 Tufts Professor [Ming Chow](http://www.linkedin.com/in/mchow01) for leading the [Senior Capstone Project](http://tuftsdev.github.io/SoftwareEngineering/) that CoVim was born in.  
 
 [![Analytics](https://ga-beacon.appspot.com/UA-39778226-2/CoVim/Readme.md)](https://github.com/igrigorik/ga-beacon)

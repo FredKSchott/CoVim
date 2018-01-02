@@ -1,10 +1,10 @@
 "Check for Python Support"
-if !has('python')
-    com! -nargs=* CoVim echoerr "Error: CoVim requires vim compiled with +python"
+if !has('python3')
+    com! -nargs=* CoVim echoerr "Error: CoVim requires vim compiled with +python3"
     finish
 endif
 
-com! -nargs=* CoVim py CoVim.command(<f-args>)
+com! -nargs=* CoVim py3 CoVim.command(<f-args>)
 
 "Needs to be set on connect, MacVim overrides otherwise"
 function! SetCoVimColors ()
@@ -29,7 +29,7 @@ if !exists("CoVim_default_port")
     let CoVim_default_port = 0
 endif
 
-python << EOF
+python3 << EOF
 
 import vim
 import os
@@ -53,56 +53,44 @@ class CoVimProtocol(Protocol):
         self.fact = fact
 
     def send(self, event):
-            self.transport.write(event)
+        self.transport.write(event.encode('utf-8'))
 
     def connectionMade(self):
         self.send(CoVim.username)
 
     def dataReceived(self, data_string):
-        def to_utf8(d):
-            if isinstance(d, dict):
-                # no dict comprehension in python2.5/2.6
-                d2 = {}
-                for key, value in d.iteritems():
-                    d2[to_utf8(key)] = to_utf8(value)
-                return d2
-            elif isinstance(d, list):
-                return map(to_utf8, d)
-            elif isinstance(d, unicode):
-                return d.encode('utf-8')
-            else:
-                return d
-
         def clean_data_string(d_s):
             bad_data = d_s.find("}{")
             if bad_data > -1:
                 d_s = d_s[:bad_data+1]
             return d_s
-
+         
+        if isinstance(data_string, bytes):
+            data_string = data_string.decode('utf-8')
         data_string = clean_data_string(data_string)
-        packet = to_utf8(json.loads(data_string))
+        packet = json.loads(data_string)
         if 'packet_type' in packet.keys():
             data = packet['data']
             if packet['packet_type'] == 'message':
                 if data['message_type'] == 'error_newname_taken':
                     CoVim.disconnect()
-                    print 'ERROR: Name already in use. Please try a different name'
+                    print('ERROR: Name already in use. Please try a different name')
                 if data['message_type'] == 'error_newname_invalid':
                     CoVim.disconnect()
-                    print 'ERROR: Name contains illegal characters. Only numbers, letters, underscores, and dashes allowed. Please try a different name'
+                    print('ERROR: Name contains illegal characters. Only numbers, letters, underscores, and dashes allowed. Please try a different name')
                 if data['message_type'] == 'connect_success':
                     CoVim.setupWorkspace()
                     if 'buffer' in data.keys():
                         CoVim.vim_buffer = data['buffer']
                         vim.current.buffer[:] = CoVim.vim_buffer
                     CoVim.addUsers(data['collaborators'])
-                    print 'Success! You\'re now connected [Port '+str(CoVim.port)+']'
+                    print('Success! You\'re now connected [Port '+str(CoVim.port)+']')
                 if data['message_type'] == 'user_connected':
                     CoVim.addUsers([data['user']])
-                    print data['user']['name']+' connected to this document'
+                    print(data['user']['name']+' connected to this document')
                 if data['message_type'] == 'user_disconnected':
                     CoVim.remUser(data['name'])
-                    print data['name']+' disconnected from this document'
+                    print(data['name']+' disconnected from this document')
             if packet['packet_type'] == 'update':
                 if 'buffer' in data.keys() and data['name'] != CoVim.username:
                     b_data = data['buffer']
@@ -117,10 +105,10 @@ class CoVimProtocol(Protocol):
                             vim.current.window.cursor = (updated_user['cursor']['y'], updated_user['cursor']['x'])
                     for updated_user in data['updated_cursors']:
                         if CoVim.username != updated_user['name']:
-                            vim.command(':call matchdelete('+str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
-                            vim.command(':call matchadd(\''+CoVim.collab_manager.collaborators[updated_user['name']][0]+'\', \'\%' + str(updated_user['cursor']['x']) + 'v.\%'+str(updated_user['cursor']['y'])+'l\', 10, ' + str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
+                            vim.command(':call matchdelete(' + str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
+                            vim.command(':call matchadd(\'' + CoVim.collab_manager.collaborators[updated_user['name']][0] + '\', \'\%' + str(updated_user['cursor']['x']) + 'v.\%' + str(updated_user['cursor']['y']) + 'l\', 10, ' + str(CoVim.collab_manager.collaborators[updated_user['name']][1]) + ')')
                 #data['cursor']['x'] = max(1,data['cursor']['x'])
-                #print str(data['cursor']['x'])+', '+str(data['cursor']['y'])
+                #print(str(data['cursor']['x'])+', '+str(data['cursor']['y'])
             vim.command(':redraw')
 
 
@@ -196,11 +184,11 @@ class CoVimFactory(ClientFactory):
         #THIS IS A HACK
         if hasattr(CoVim, 'buddylist'):
             CoVim.disconnect()
-            print 'Lost connection.'
+            print('Lost connection.')
 
     def clientConnectionFailed(self, connector, reason):
         CoVim.disconnect()
-        print 'Connection failed.'
+        print('Connection failed.')
 
 
 #Manage Collaborators
@@ -216,14 +204,14 @@ class CollaboratorManager:
         self.buddylist_highlight_ids = []
 
     def addUser(self, user_obj):
-            if user_obj['name'] == CoVim.username:
-                self.collaborators[user_obj['name']] = ('CursorUser', 4000)
-            else:
-                self.collaborators[user_obj['name']] = ('Cursor' + str(self.collab_color_itr), self.collab_id_itr)
-                self.collab_id_itr += 1
-                self.collab_color_itr = (self.collab_id_itr-3) % 11
-                vim.command(':call matchadd(\''+self.collaborators[user_obj['name']][0]+'\', \'\%' + str(user_obj['cursor']['x']) + 'v.\%'+str(user_obj['cursor']['y'])+'l\', 10, ' + str(self.collaborators[user_obj['name']][1]) + ')')
-            self.refreshCollabDisplay()
+        if user_obj['name'] == CoVim.username:
+            self.collaborators[user_obj['name']] = ('CursorUser', 4000)
+        else:
+            self.collaborators[user_obj['name']] = ('Cursor' + str(self.collab_color_itr), self.collab_id_itr)
+            self.collab_id_itr += 1
+            self.collab_color_itr = (self.collab_id_itr-3) % 11
+            vim.command(':call matchadd(\''+self.collaborators[user_obj['name']][0]+'\', \'\%' + str(user_obj['cursor']['x']) + 'v.\%'+str(user_obj['cursor']['y'])+'l\', 10, ' + str(self.collaborators[user_obj['name']][1]) + ')')
+        self.refreshCollabDisplay()
 
     def remUser(self, name):
         vim.command('call matchdelete('+str(self.collaborators[name][1]) + ')')
@@ -259,18 +247,18 @@ class CoVimScope:
     def initiate(self, addr, port, name):
         #Check if connected. If connected, throw error.
         if hasattr(self, 'fact') and self.fact.isConnected:
-            print 'ERROR: Already connected. Please disconnect first'
+            print('ERROR: Already connected. Please disconnect first')
             return
         if not port and hasattr(self, 'port') and self.port:
             port = self.port
         if not addr and hasattr(self, 'addr') and self.addr:
             addr = self.addr
         if not addr or not port or not name:
-            print 'Syntax Error: Use form :Covim connect <server address> <port> <name>'
+            print('Syntax Error: Use form :Covim connect <server address> <port> <name>')
             return
         port = int(port)
         addr = str(addr)
-        vim.command('autocmd VimLeave * py CoVim.quit()')
+        vim.command('autocmd VimLeave * py3 CoVim.quit()')
         if not hasattr(self, 'connection'):
             self.addr = addr
             self.port = port
@@ -281,13 +269,13 @@ class CoVimScope:
             self.connection = reactor.connectTCP(addr, port, self.fact)
             self.reactor_thread = Thread(target=reactor.run, args=(False,))
             self.reactor_thread.start()
-            print 'Connecting...'
+            print('Connecting...')
         elif (hasattr(self, 'port') and port != self.port) or (hasattr(self, 'addr') and addr != self.addr):
-            print 'ERROR: Different address/port already used. To try another, you need to restart Vim'
+            print('ERROR: Different address/port already used. To try another, you need to restart Vim')
         else:
             self.collab_manager.reset()
             self.connection.connect()
-            print 'Reconnecting...'
+            print('Reconnecting...')
 
     def createServer(self, port, name):
         vim.command(':silent execute "!'+CoVimServerPath+' '+port+' &>/dev/null &"')
@@ -297,16 +285,16 @@ class CoVimScope:
     def setupWorkspace(self):
         vim.command('call SetCoVimColors()')
         vim.command(':autocmd!')
-        vim.command('autocmd CursorMoved <buffer> py reactor.callFromThread(CoVim.fact.cursor_update)')
-        vim.command('autocmd CursorMovedI <buffer> py reactor.callFromThread(CoVim.fact.buff_update)')
-        vim.command('autocmd VimLeave * py CoVim.quit()')
+        vim.command('autocmd CursorMoved <buffer> py3 reactor.callFromThread(CoVim.fact.cursor_update)')
+        vim.command('autocmd CursorMovedI <buffer> py3 reactor.callFromThread(CoVim.fact.buff_update)')
+        vim.command('autocmd VimLeave * py3 CoVim.quit()')
         vim.command("1new +setlocal\ stl=%!'CoVim-Collaborators'")
         self.buddylist = vim.current.buffer
         self.buddylist_window = vim.current.window
         vim.command("wincmd j")
 
-    def addUsers(self, list):
-        map(self.collab_manager.addUser, list)
+    def addUsers(self, userlist):
+        list(map(self.collab_manager.addUser, userlist))
 
     def remUser(self, name):
         self.collab_manager.remUser(name)
@@ -327,7 +315,7 @@ class CoVimScope:
             elif arg2 and default_port != '0' and default_name != '0':
                 self.initiate(arg2, default_port, default_name)
             else:
-                print "usage :CoVim connect [host address / 'localhost'] [port"+default_port_string+"] [name"+default_name_string+"]"
+                print("usage :CoVim connect [host address / 'localhost'] [port"+default_port_string+"] [name"+default_name_string+"]")
         elif arg1 == "disconnect":
             self.disconnect()
         elif arg1 == "quit":
@@ -340,16 +328,16 @@ class CoVimScope:
             elif default_port != '0' and default_name != '0':
                 self.createServer(default_port, default_name)
             else:
-                print "usage :CoVim start [port"+default_port_string+"] [name"+default_name_string+"]"
+                print("usage :CoVim start [port"+default_port_string+"] [name"+default_name_string+"]")
         else:
-            print "usage: CoVim [start] [connect] [disconnect] [quit]"
+            print("usage: CoVim [start] [connect] [disconnect] [quit]")
 
     def exit(self):
         if hasattr(self, 'buddylist_window') and hasattr(self, 'connection'):
             self.disconnect()
             vim.command('q')
         else:
-            print "ERROR: CoVim must be running to use this command"
+            print("ERROR: CoVim must be running to use this command")
 
     def disconnect(self):
         if hasattr(self, 'buddylist'):
@@ -364,9 +352,9 @@ class CoVimScope:
             del(self.buddylist_window)
         if hasattr(self, 'connection'):
             reactor.callFromThread(self.connection.disconnect)
-            print 'Successfully disconnected from document!'
+            print('Successfully disconnected from document!')
         else:
-            print "ERROR: CoVim must be running to use this command"
+            print("ERROR: CoVim must be running to use this command")
 
     def quit(self):
         reactor.callFromThread(reactor.stop)
